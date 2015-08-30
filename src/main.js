@@ -117,10 +117,7 @@ function update(timestamp) {
     }
 
     if (keys.fire && (timestamp - bulletTime) > 200) {
-      let basey = block.y + block.dy * 10;
-      bullets.add({ x : WIDTH, y : basey + 100 - 50 * Math.random(), vx: -6, vy: 0 });
-      bullets.add({ x : WIDTH + 100 - 50 * Math.random(), y : basey + 100 - 50 * Math.random(), vx: -6, vy: 0 });
-      bullets.add({ x : WIDTH + 100 - 50 * Math.random(), y : basey + 100 - 50 * Math.random(), vx: -6, vy: 0 });
+      bullets.add({ x : WIDTH, y : block.y, vx: -6, vy: 0 });
       bulletTime = timestamp;
     }
 
@@ -141,18 +138,18 @@ function update(timestamp) {
       let b2py = block.y - bullet.y;
       let d = Math.sqrt(b2px * b2px + b2py * b2py);
       let a = Math.atan2(b2py, b2px);
-      let ax = 0.5 * Math.cos(a);
+      let ax = Math.cos(a);
       let ay = Math.sin(a);
 
-      bullet.vx += ax;
-      bullet.vy += ay;
+      bullet.vx = ax * 8;
+      bullet.vy = ay * 8;
 
-      let v = Math.sqrt(bullet.vx * bullet.vx + bullet.vy * bullet.vy);
-      if (v > MAXV) {
-        let a = Math.atan2(bullet.vy, bullet.vx);
-        bullet.vx = MAXV * Math.cos(a);
-        bullet.vy = MAXV * Math.sin(a);
-      }
+      // let v = Math.sqrt(bullet.vx * bullet.vx + bullet.vy * bullet.vy);
+      // if (v > MAXV) {
+      //   let a = Math.atan2(bullet.vy, bullet.vx);
+      //   bullet.vx = MAXV * Math.cos(a);
+      //   bullet.vy = MAXV * Math.sin(a);
+      // }
 
       bullet.x += bullet.vx;
       bullet.y += bullet.vy;
@@ -170,15 +167,15 @@ function update(timestamp) {
       let ax = Math.cos(a);
       let ay = Math.sin(a);
 
-      bullet.vx += ax;
-      bullet.vy += ay;
+      bullet.vx = ax * 8;
+      bullet.vy = ay * 8;
 
-      let v = Math.sqrt(bullet.vx * bullet.vx + bullet.vy * bullet.vy);
-      if (v > 0.5 * MAXV) {
-        let a = Math.atan2(bullet.vy, bullet.vx);
-        bullet.vx = 0.5 * MAXV * Math.cos(a);
-        bullet.vy = 0.5 * MAXV * Math.sin(a);
-      }
+      // let v = Math.sqrt(bullet.vx * bullet.vx + bullet.vy * bullet.vy);
+      // if (v > 0.5 * MAXV) {
+      //   let a = Math.atan2(bullet.vy, bullet.vx);
+      //   bullet.vx = 0.5 * MAXV * Math.cos(a);
+      //   bullet.vy = 0.5 * MAXV * Math.sin(a);
+      // }
 
       bullet.x += bullet.vx;
       bullet.y += bullet.vy;
@@ -202,7 +199,10 @@ function update(timestamp) {
         let b2py = foe.y - bullet.y;
         let d = Math.sqrt(b2px * b2px + b2py * b2py);
         if (d < 20) {
-            explosions.add({ x: foe.x, y: block.y, energy: 10 })
+            explosions.add({ x: foe.x, y: block.y, energy: 10, vx: Math.random() - 0.5, vy: Math.random() - 0.5 })
+            explosions.add({ x: foe.x, y: block.y, energy: 10, vx: Math.random() - 0.5, vy: Math.random() - 0.5 })
+            explosions.add({ x: foe.x, y: block.y, energy: 10, vx: Math.random() - 0.5, vy: Math.random() - 0.5 })
+
             foes.delete(foe);
             bullets.delete(bullet);
         }
@@ -252,7 +252,10 @@ function update(timestamp) {
 
     ctx.fillStyle = "#00f";
     for (let foe of foes) {
-      ctx.fillRect(foe.x - 25, foe.y - 25, 50, 50);
+      // ctx.fillRect(foe.x - 25, foe.y - 25, 50, 50);
+      ctx.beginPath();
+      ctx.arc(foe.x, foe.y, 25, 0, 2 * Math.PI, false);
+      ctx.fill();
     }
 
     for (let e of explosions) {
@@ -260,7 +263,15 @@ function update(timestamp) {
       let c = `rgba(255, 255, 0, ${r / 50})`;
       ctx.fillStyle = c;
       let sz = 2 * (50 - r);
-      ctx.fillRect(e.x - 0.5 * sz, e.y - 0.5 * sz, sz, sz);
+
+      if (e.vx) {
+        e.x += e.vx;
+        e.y += e.vy;
+      }
+
+      ctx.beginPath();
+      ctx.arc(e.x, e.y, 0.5 * sz, 0, 2 * Math.PI, false);
+      ctx.fill();
     }
 
     ctx.drawImage(preloader.get("giddy.png"), 0, 0);
