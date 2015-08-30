@@ -127,7 +127,7 @@ function update(timestamp) {
     for (let foe of foes) {
       foe.x += foe.vx;
       foe.y = Math.sin(-0.6 * foe.seq + timestamp * 0.001) * HEIGHT * 0.5 + 0.5 * HEIGHT;
-      if (foe.x > 0.1 * WIDTH && Math.random() < 0.01) {
+      if (foe.x > 0.01 * WIDTH && Math.random() < 0.01) {
         foeBullets.add({ x: 0, y: foe.y, vx: 4, vy: 0, owner: foe});
       }
 
@@ -221,40 +221,46 @@ function update(timestamp) {
     bouncy.x += bouncy.dx;
     bouncy.y += bouncy.dy;
 
-    if (bouncy.y > HEIGHT - bouncy.h) bouncy.dy *= -1;
+    if (bouncy.y > HEIGHT) bouncy.dy *= -1;
     if (bouncy.y < 0) bouncy.dy *= -1;
-    if (bouncy.x > WIDTH - bouncy.w) bouncy.dx *= -1;
+    if (bouncy.x > WIDTH) bouncy.dx *= -1;
     if (bouncy.x < 0) bouncy.dx *= -1;
 
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
     ctx.fillStyle = "#f00";
-    ctx.fillRect(bouncy.x, bouncy.y, bouncy.w, bouncy.h);
+    ctx.fillRect(bouncy.x - 0.5 * bouncy.w, bouncy.y - 0.5 * bouncy.h, bouncy.w, bouncy.h);
 
     ctx.fillStyle = "#ccc";
-    ctx.fillRect(block.x, block.y, block.w, block.h);
+    // ctx.fillRect(block.x, block.y, block.w, block.h);
+    ctx.beginPath();
+    ctx.moveTo(block.x - 10, block.y - 10);
+    ctx.lineTo(block.x + 10, block.y);
+    ctx.lineTo(block.x - 10, block.y + 10);
+    ctx.fill();
 
     ctx.fillStyle = "#0ff";
     for (let bullet of bullets) {
-      ctx.fillRect(bullet.x, bullet.y, 12, 4);
+      ctx.fillRect(bullet.x - 6, bullet.y - 2, 12, 4);
     }
 
     ctx.fillStyle = "#f0f";
     for (let bullet of foeBullets) {
-      ctx.fillRect(bullet.x, bullet.y, 12, 4);
+      ctx.fillRect(bullet.x - 6, bullet.y - 2, 12, 4);
     }
 
     ctx.fillStyle = "#00f";
     for (let foe of foes) {
-      ctx.fillRect(foe.x, foe.y, 50, 50);
+      ctx.fillRect(foe.x - 25, foe.y - 25, 50, 50);
     }
 
     for (let e of explosions) {
       let r = (e.energy) * 5;
       let c = `rgba(255, 255, 0, ${r / 50})`;
       ctx.fillStyle = c;
-      ctx.fillRect(e.x, e.y, 2 * (50 - r), 2 * (50 - r));
+      let sz = 2 * (50 - r);
+      ctx.fillRect(e.x - 0.5 * sz, e.y - 0.5 * sz, sz, sz);
     }
 
     ctx.drawImage(preloader.get("giddy.png"), 0, 0);
