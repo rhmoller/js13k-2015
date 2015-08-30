@@ -43,11 +43,19 @@ ctx.fillRect(0, 0, WIDTH, HEIGHT);
 document.body.appendChild(canvas);
 
 let bouncy = { x: 100, y: 100, w: 16, h: 16, dx: 2, dy: 3 };
-let block = { x: 200, y: 200, w: 16, h: 16 };
+let block = { x: 200, y: 200, w: 16, h: 16, dx: 0, dy: 0 };
 
 let bullets = new Set();
-
 let bulletTime = 0;
+
+let foes = new Set();
+let foeBullets = new Set();
+let foeTime = 0;
+let foeSeq = 0;
+
+let MAXV = 10;
+
+let explosions = new Set();
 
 let keys = {
   up: false,
@@ -84,28 +92,79 @@ function update(timestamp) {
     let dt = timestamp - lastTime;
 
     if (keys.left) {
-      block.x -= 4;
-    }
-    if (keys.up) {
-      block.y -= 4;
-    }
-    if (keys.right) {
-      block.x += 4;
-    }
-    if (keys.down) {
-      block.y += 4;
+      block.dx = -4;
+    } else if (keys.right) {
+      block.dx = 4;
+    } else {
+      block.dx = 0;
     }
 
-    if (keys.fire && (timestamp - bulletTime) > 100) {
-      bullets.add({ x : WIDTH + 100 - 50 * Math.random(), y : block.y + 100 - 50 * Math.random(), vx: -6, vy: 0 });
-      bullets.add({ x : WIDTH + 100 - 50 * Math.random(), y : block.y + 100 - 50 * Math.random(), vx: -6, vy: 0 });
-      bullets.add({ x : WIDTH + 100 - 50 * Math.random(), y : block.y + 100 - 50 * Math.random(), vx: -6, vy: 0 });
+    if (keys.up) {
+      block.dy = -4;
+    } else if (keys.down) {
+      block.dy = 4;
+    } else {
+      block.dy = 0;
+    }
+
+    block.x += block.dx;
+    block.y += block.dy;
+
+    if (timestamp - foeTime > 1500) {
+      let foe = { x: -50, y: Math.sin(timestamp * 0.01) * HEIGHT * 0.5 + 0.5 * HEIGHT, vx: 2, vy: 0, seq: foeSeq++ };
+      foes.add(foe);
+      foeTime = timestamp;
+    }
+
+    if (keys.fire && (timestamp - bulletTime) > 200) {
+      let basey = block.y + block.dy * 10;
+      bullets.add({ x : WIDTH, y : basey + 100 - 50 * Math.random(), vx: -6, vy: 0 });
+      bullets.add({ x : WIDTH + 100 - 50 * Math.random(), y : basey + 100 - 50 * Math.random(), vx: -6, vy: 0 });
+      bullets.add({ x : WIDTH + 100 - 50 * Math.random(), y : basey + 100 - 50 * Math.random(), vx: -6, vy: 0 });
       bulletTime = timestamp;
     }
+
+    for (let foe of foes) {
+      foe.x += foe.vx;
+      foe.y = Math.sin(-0.6 * foe.seq + timestamp * 0.001) * HEIGHT * 0.5 + 0.5 * HEIGHT;
+      if (foe.x > 0.1 * WIDTH && Math.random() < 0.01) {
+        foeBullets.add({ x: 0, y: foe.y, vx: 4, vy: 0, owner: foe});
+      }
+
+      if (foe.x > WIDTH) {
+        foes.delete(foe);
+      }
+     }
 
     for (let bullet of bullets) {
       let b2px = block.x - bullet.x;
       let b2py = block.y - bullet.y;
+      let d = Math.sqrt(b2px * b2px + b2py * b2py);
+      let a = Math.atan2(b2py, b2px);
+      let ax = 0.5 * Math.cos(a);
+      let ay = Math.sin(a);
+
+      bullet.vx += ax;
+      bullet.vy += ay;
+
+      let v = Math.sqrt(bullet.vx * bullet.vx + bullet.vy * bullet.vy);
+      if (v > MAXV) {
+        let a = Math.atan2(bullet.vy, bullet.vx);
+        bullet.vx = MAXV * Math.cos(a);
+        bullet.vy = MAXV * Math.sin(a);
+      }
+
+      bullet.x += bullet.vx;
+      bullet.y += bullet.vy;
+
+      if (bullet.x < block.x - 70 || bullet.x < 0 || bullet.y > HEIGHT + 100 || bullet.y < -100 || d < 20) {
+        bullets.delete(bullet);
+      }
+    }
+
+    for (let bullet of foeBullets) {
+      let b2px = bullet.owner.x - bullet.x;
+      let b2py = bullet.owner.y - bullet.y;
       let d = Math.sqrt(b2px * b2px + b2py * b2py);
       let a = Math.atan2(b2py, b2px);
       let ax = Math.cos(a);
@@ -115,17 +174,45 @@ function update(timestamp) {
       bullet.vy += ay;
 
       let v = Math.sqrt(bullet.vx * bullet.vx + bullet.vy * bullet.vy);
-      if (v > 6) {
+      if (v > 0.5 * MAXV) {
         let a = Math.atan2(bullet.vy, bullet.vx);
-        bullet.vx = 6 * Math.cos(a);
-        bullet.vy = 6 * Math.sin(a);
+        bullet.vx = 0.5 * MAXV * Math.cos(a);
+        bullet.vy = 0.5 * MAXV * Math.sin(a);
       }
 
       bullet.x += bullet.vx;
       bullet.y += bullet.vy;
 
-      if (bullet.x < 0 || bullet.y > HEIGHT + 100 || bullet.y < -100 || d < 12) {
-        bullets.delete(bullet);
+      if (d < 20 || bullet.x > WIDTH) {
+        foeBullets.delete(bullet);
+      }
+
+      let bx = block.x - bullet.x;
+      let by = block.y - bullet.y;
+      let d2 = Math.sqrt(bx * bx + by * by);
+      if (d2 < 20) {
+        explosions.add({ x: block.x, y: block.y, energy: 10 })
+        foeBullets.delete(bullet);
+      }
+    }
+
+    for (let bullet of bullets) {
+      for (let foe of foes) {
+        let b2px = foe.x - bullet.x;
+        let b2py = foe.y - bullet.y;
+        let d = Math.sqrt(b2px * b2px + b2py * b2py);
+        if (d < 20) {
+            explosions.add({ x: foe.x, y: block.y, energy: 10 })
+            foes.delete(foe);
+            bullets.delete(bullet);
+        }
+      }
+    }
+
+    for (let e of explosions) {
+      e.energy -= 0.2;
+      if (e.energy < 0 ) {
+        explosions.delete(e);
       }
     }
 
@@ -139,18 +226,35 @@ function update(timestamp) {
     if (bouncy.x > WIDTH - bouncy.w) bouncy.dx *= -1;
     if (bouncy.x < 0) bouncy.dx *= -1;
 
-    ctx.fillStyle = "#888";
+    ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
-    ctx.fillStyle = "#fff";
+    ctx.fillStyle = "#f00";
     ctx.fillRect(bouncy.x, bouncy.y, bouncy.w, bouncy.h);
 
-    ctx.fillStyle = "#000";
+    ctx.fillStyle = "#ccc";
     ctx.fillRect(block.x, block.y, block.w, block.h);
 
-    ctx.fillStyle = "#ff0";
+    ctx.fillStyle = "#0ff";
     for (let bullet of bullets) {
-      ctx.fillRect(bullet.x, bullet.y, 8, 8);
+      ctx.fillRect(bullet.x, bullet.y, 12, 4);
+    }
+
+    ctx.fillStyle = "#f0f";
+    for (let bullet of foeBullets) {
+      ctx.fillRect(bullet.x, bullet.y, 12, 4);
+    }
+
+    ctx.fillStyle = "#00f";
+    for (let foe of foes) {
+      ctx.fillRect(foe.x, foe.y, 50, 50);
+    }
+
+    for (let e of explosions) {
+      let r = (e.energy) * 5;
+      let c = `rgba(255, 255, 0, ${r / 50})`;
+      ctx.fillStyle = c;
+      ctx.fillRect(e.x, e.y, 2 * (50 - r), 2 * (50 - r));
     }
 
     ctx.drawImage(preloader.get("giddy.png"), 0, 0);
