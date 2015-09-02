@@ -84,9 +84,22 @@ function update(timestamp) {
         foeBullets.add({ x: 0, y: foe.y, vx: 4, vy: 0, owner: foe});
       }
 
+      let b2px = block.x - foe.x;
+      let b2py = block.y - foe.y;
+      let d = Math.sqrt(b2px * b2px + b2py * b2py);
+
       if (foe.x > WIDTH + 32) {
         foes.delete(foe);
+      } else if (d < 32) {
+        foes.delete(foe);
+        explosions.add({ x: foe.x, y: block.y, energy: 10, vx: Math.random() - 0.5, vy: Math.random() - 0.5 })
+        explosions.add({ x: foe.x, y: block.y, energy: 10, vx: Math.random() - 0.5, vy: Math.random() - 0.5 })
+        explosions.add({ x: foe.x, y: block.y, energy: 10, vx: Math.random() - 0.5, vy: Math.random() - 0.5 })
+        block.y = HEIGHT * 0.5;
+        block.x = 100;
       }
+
+
      }
 
     for (let bullet of bullets) {
