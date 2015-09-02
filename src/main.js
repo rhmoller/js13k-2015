@@ -1,34 +1,11 @@
-const WIDTH = 800;
+import Preloader from "./Preloader.js"
+import GamePad from "./GamePad.js"
+import Body from "./Body.js"
+
+const WIDTH = 1000;
 const HEIGHT = 600;
 
-let preloader = {
-  paths: [],
-  assets: {},
-  loaded: 0,
-
-  queue(path) {
-    this.paths.push(path);
-  },
-
-  get(path) {
-    return this.assets[path];
-  },
-
-  load(callback) {
-    for (let i = 0; i < this.paths.length; i++) {
-      let img = new Image();
-      img.onload = () => {
-        this.assets[this.paths[i]] = img;
-        this.loaded++;
-        if (this.loaded == this.paths.length) {
-          callback.call(this);
-        }
-      }
-      img.src = this.paths[i];
-    }
-  }
-};
-
+let preloader = new Preloader();
 preloader.queue("giddy.png");
 preloader.queue("giddy2.png");
 
@@ -41,9 +18,15 @@ ctx.fillStyle = "#000";
 ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
 document.body.appendChild(canvas);
+document.body.style.backgroundColor = "#000";
+document.body.style.align = "center";
+canvas.style.marginLeft = "auto";
+canvas.style.marginRight = "auto";
+canvas.style.display = "block";
 
-let bouncy = { x: 100, y: 100, w: 16, h: 16, dx: 2, dy: 3 };
-let block = { x: 200, y: 200, w: 16, h: 16, dx: 0, dy: 0 };
+let block = new Body(16, 16);
+block.setPosition(200, 200);
+block.setVelocity(0, 0);
 
 let bullets = new Set();
 let bulletTime = 0;
@@ -57,33 +40,7 @@ let MAXV = 10;
 
 let explosions = new Set();
 
-let keys = {
-  up: false,
-  down: false,
-  left: false,
-  right: false,
-  fire: false
-};
-
-window.addEventListener("keydown", (e) => {
-  switch (e.keyCode) {
-    case 37: keys.left = true; break;
-    case 38: keys.up = true; break;
-    case 39: keys.right = true; break;
-    case 40: keys.down = true; break;
-    case 32: keys.fire = true; break;
-  }
-}, false);
-
-window.addEventListener("keyup", (e) => {
-  switch (e.keyCode) {
-    case 37: keys.left = false; break;
-    case 38: keys.up = false; break;
-    case 39: keys.right = false; break;
-    case 40: keys.down = false; break;
-    case 32: keys.fire = false; break;
-  }
-}, false);
+let gamePad = new GamePad();
 
 let lastTime = 0;
 
@@ -91,24 +48,23 @@ function update(timestamp) {
     requestAnimationFrame(update);
     let dt = timestamp - lastTime;
 
-    if (keys.left) {
-      block.dx = -4;
-    } else if (keys.right) {
-      block.dx = 4;
+    if (gamePad.left) {
+      block.vx = -4;
+    } else if (gamePad.right) {
+      block.vx = 4;
     } else {
-      block.dx = 0;
+      block.vx = 0;
     }
 
-    if (keys.up) {
-      block.dy = -4;
-    } else if (keys.down) {
-      block.dy = 4;
+    if (gamePad.up) {
+      block.vy = -4;
+    } else if (gamePad.down) {
+      block.vy = 4;
     } else {
-      block.dy = 0;
+      block.vy = 0;
     }
 
-    block.x += block.dx;
-    block.y += block.dy;
+    block.update();
 
     if (timestamp - foeTime > 1500) {
       let foe = { x: -50, y: Math.sin(timestamp * 0.01) * HEIGHT * 0.5 + 0.5 * HEIGHT, vx: 2, vy: 0, seq: foeSeq++ };
@@ -116,7 +72,7 @@ function update(timestamp) {
       foeTime = timestamp;
     }
 
-    if (keys.fire && (timestamp - bulletTime) > 200) {
+    if (gamePad.fire && (timestamp - bulletTime) > 200) {
       bullets.add({ x : WIDTH, y : block.y, vx: -6, vy: 0 });
       bulletTime = timestamp;
     }
@@ -128,7 +84,7 @@ function update(timestamp) {
         foeBullets.add({ x: 0, y: foe.y, vx: 4, vy: 0, owner: foe});
       }
 
-      if (foe.x > WIDTH) {
+      if (foe.x > WIDTH + 32) {
         foes.delete(foe);
       }
      }
@@ -143,13 +99,6 @@ function update(timestamp) {
 
       bullet.vx = ax * 8;
       bullet.vy = ay * 8;
-
-      // let v = Math.sqrt(bullet.vx * bullet.vx + bullet.vy * bullet.vy);
-      // if (v > MAXV) {
-      //   let a = Math.atan2(bullet.vy, bullet.vx);
-      //   bullet.vx = MAXV * Math.cos(a);
-      //   bullet.vy = MAXV * Math.sin(a);
-      // }
 
       bullet.x += bullet.vx;
       bullet.y += bullet.vy;
@@ -169,13 +118,6 @@ function update(timestamp) {
 
       bullet.vx = ax * 8;
       bullet.vy = ay * 8;
-
-      // let v = Math.sqrt(bullet.vx * bullet.vx + bullet.vy * bullet.vy);
-      // if (v > 0.5 * MAXV) {
-      //   let a = Math.atan2(bullet.vy, bullet.vx);
-      //   bullet.vx = 0.5 * MAXV * Math.cos(a);
-      //   bullet.vy = 0.5 * MAXV * Math.sin(a);
-      // }
 
       bullet.x += bullet.vx;
       bullet.y += bullet.vy;
@@ -218,27 +160,35 @@ function update(timestamp) {
 
     document.title = `Bullets: ${bullets.size}`
 
-    bouncy.x += bouncy.dx;
-    bouncy.y += bouncy.dy;
-
-    if (bouncy.y > HEIGHT) bouncy.dy *= -1;
-    if (bouncy.y < 0) bouncy.dy *= -1;
-    if (bouncy.x > WIDTH) bouncy.dx *= -1;
-    if (bouncy.x < 0) bouncy.dx *= -1;
-
-    ctx.fillStyle = "#000";
+    ctx.fillStyle = "#001800";
+    ctx.strokeStyle = "#020";
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
-    ctx.fillStyle = "#f00";
-    ctx.fillRect(bouncy.x - 0.5 * bouncy.w, bouncy.y - 0.5 * bouncy.h, bouncy.w, bouncy.h);
+    let levelx = timestamp * 0.2;
+    for (let x = 0; x < WIDTH; x+= 50) {
+      ctx.beginPath();
+      ctx.moveTo(WIDTH - (x + levelx) % WIDTH, 0);
+      ctx.lineTo(WIDTH - (x + levelx) % WIDTH, HEIGHT);
+      ctx.stroke();
+    }
+    for (let y = 0; y < HEIGHT; y+= 50) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(WIDTH, y);
+      ctx.stroke();
+    }
 
-    ctx.fillStyle = "#ccc";
+    ctx.fillStyle = "#888";
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#fff";
     // ctx.fillRect(block.x, block.y, block.w, block.h);
     ctx.beginPath();
     ctx.moveTo(block.x - 10, block.y - 10);
     ctx.lineTo(block.x + 10, block.y);
     ctx.lineTo(block.x - 10, block.y + 10);
+    ctx.closePath();
     ctx.fill();
+    ctx.stroke();
 
     ctx.fillStyle = "#0ff";
     for (let bullet of bullets) {
@@ -251,18 +201,21 @@ function update(timestamp) {
     }
 
     ctx.fillStyle = "#00f";
+    ctx.strokeStyle = "#0ff";
     for (let foe of foes) {
       // ctx.fillRect(foe.x - 25, foe.y - 25, 50, 50);
       ctx.beginPath();
       ctx.arc(foe.x, foe.y, 25, 0, 2 * Math.PI, false);
       ctx.fill();
+      ctx.stroke();
     }
 
     for (let e of explosions) {
-      let r = (e.energy) * 5;
-      let c = `rgba(255, 255, 0, ${r / 50})`;
+      let r = e.energy * 5;
+      let sz = 100 - (100 * e.energy * e.energy * 0.01);
+      let c = `rgba(255, 255, 0, ${1 - sz / 100})`;
       ctx.fillStyle = c;
-      let sz = 2 * (50 - r);
+      ctx.strokeStyle = `rgba(255, 255, 0, ${1 - sz / 100})`;
 
       if (e.vx) {
         e.x += e.vx;
@@ -272,6 +225,7 @@ function update(timestamp) {
       ctx.beginPath();
       ctx.arc(e.x, e.y, 0.5 * sz, 0, 2 * Math.PI, false);
       ctx.fill();
+      ctx.stroke();
     }
 
     ctx.drawImage(preloader.get("giddy.png"), 0, 0);

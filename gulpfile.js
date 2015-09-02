@@ -6,6 +6,7 @@ var watchify = require("watchify");
 var babelify = require("babelify");
 var exorcist = require("exorcist");
 var browserSync = require("browser-sync").create();
+var uglify = require("gulp-uglify");
 
 watchify.args.debug = true;
 var bundler = watchify(browserify("./src/main.js", watchify.args));
@@ -47,4 +48,10 @@ gulp.task("default", [ "bundle", "assets" ], function () {
   });
 
   gulp.watch("./assets/**/*.*", [ "assets" ]);
+});
+
+gulp.task("minify", function () {
+  return gulp.src("build/game.js")
+    .pipe(uglify())
+    .pipe(gulp.dest("build/minified"));
 });
