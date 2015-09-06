@@ -126,7 +126,7 @@ function update(timestamp) {
     block.a += 0.2 * da;
     block.update();
 
-    if (timestamp - foeTime > 250) {
+    if (timestamp - foeTime > 500) {
       let foe = { x: -50, y: Math.sin(timestamp * 0.0001) * HEIGHT * 0.5 + 0.5 * HEIGHT, vx: 2, vy: 0, seq: foeSeq++ };
       foe.lastX = foe.x - foe.vx;
       foe.lastY = foe.y - foe.vy;
@@ -143,8 +143,9 @@ function update(timestamp) {
     }
 
     for (let foe of foes) {
-      foe.x += foe.vx;
-      foe.y = Math.sin(-0.6 * foe.seq + timestamp * 0.001) * HEIGHT * 0.5 + 0.5 * HEIGHT;
+      foe.x += foe.vx * 1.5;
+      // foe.y = Math.sin(-0.6 * foe.seq + timestamp * 0.001) * HEIGHT * 0.4 + 0.5 * HEIGHT;
+      foe.y = Math.sin(-0.6 * foe.seq + timestamp * 0.002) * 40 + 50;
       foe.a = Math.atan2(foe.y - foe.lastY, foe.x - foe.lastX);
       foe.lastX = foe.x;
       foe.lastY = foe.y;
@@ -254,9 +255,13 @@ function update(timestamp) {
     }
 
     document.title = `Bullets: ${bullets.size}`
+    // ctx.shadowColor = "#000";
+    // ctx.shadowOffsetX = 10;
+    // ctx.shadowOffsetY = 10;
+    // ctx.shadowBlur = 5;
 
-    ctx.fillStyle = "#001800";
-    ctx.strokeStyle = "#020";
+    ctx.fillStyle = "#001";
+    ctx.strokeStyle = "#012";
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
     let levelx = timestamp * 0.2;
@@ -336,6 +341,25 @@ function update(timestamp) {
       ctx.fill();
       ctx.stroke();
     }
+
+    ctx.font = "112px sans-serif";
+    ctx.fillStyle = "#fff";
+    let textSize = ctx.measureText("Bullet Pull");
+    ctx.fillText("Bullet Pull", 0.5 * (WIDTH - textSize.width), 200);
+
+    ctx.font = "20px sans-serif";
+    ctx.fillText("3 lives", WIDTH - (20 + ctx.measureText("3 lives").width), 20);
+    ctx.fillText("Score: 12300", 20, 20);
+
+
+    ctx.fillStyle = "rgba(128,255,255,0.2)";
+    ctx.fillRect(0, 320, WIDTH, 40);
+
+    ctx.font = "32px sans-serif";
+    ctx.fillStyle = "#fff";
+    ctx.fillText("New Game", 0.5 * (WIDTH - ctx.measureText("New Game").width), 350);
+    ctx.fillText("Controls", 0.5 * (WIDTH - ctx.measureText("Controls").width), 390);
+    ctx.fillText("About", 0.5 * (WIDTH - ctx.measureText("About").width), 430);
 
     lastTime = timestamp;
 }

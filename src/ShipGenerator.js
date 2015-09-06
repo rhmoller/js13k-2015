@@ -56,6 +56,7 @@ export default class ShipGenerator {
     let s = (Math.random() * 50)|0 + 50;
     let v = (Math.random() * 50)|0 + 50;
     ctx.fillStyle = `hsl(${h},${s}%,${v}%)`;
+    ctx.strokeStyle = `hsl(${h},${90}%,${90}%)`;
 
     let px = 0;
     let py = 0;
