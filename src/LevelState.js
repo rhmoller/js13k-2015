@@ -89,6 +89,10 @@ export default class LevelState extends GameState {
   init() {
     this.score = 0;
     this.lives = 3;
+    this.foes.clear();
+    this.foeBullets.clear();
+    this.bullets.clear();
+    this.explosions.clear();
   }
 
   update(timestamp) {
@@ -155,9 +159,9 @@ export default class LevelState extends GameState {
         this.foes.delete(foe);
       } else if (d < 32) {
         this.foes.delete(foe);
-        this.explosions.add({ x: foe.x, y: block.y, energy: 10, vx: Math.random() - 0.5, vy: Math.random() - 0.5 })
-        this.explosions.add({ x: foe.x, y: block.y, energy: 10, vx: Math.random() - 0.5, vy: Math.random() - 0.5 })
-        this.explosions.add({ x: foe.x, y: block.y, energy: 10, vx: Math.random() - 0.5, vy: Math.random() - 0.5 })
+        for (let i = 0; i < 5; i++) {
+          this.explosions.add({ x: block.x + 5 * Math.random() - 10, y: block.y+ 5 * Math.random() - 10, energy: 10, vx: Math.random() - 0.5, vy: Math.random() - 0.5 })
+        }
 
         this.lives--;
         block.y = HEIGHT * 0.5;
@@ -215,7 +219,10 @@ export default class LevelState extends GameState {
       let d2 = Math.sqrt(bx * bx + by * by);
       if (d2 < 20) {
         this.foeBullets.delete(bullet);
-        this.explosions.add({ x: block.x, y: block.y, energy: 10 })
+        for (let i = 0; i < 5; i++) {
+          this.explosions.add({ x: block.x + 5 * Math.random() - 10, y: block.y+ 5 * Math.random() - 10, energy: 10, vx: Math.random() - 0.5, vy: Math.random() - 0.5 })
+        }
+
         block.y = HEIGHT * 0.5;
         block.x = 100;
 
@@ -232,9 +239,9 @@ export default class LevelState extends GameState {
         let b2py = foe.y - bullet.y;
         let d = Math.sqrt(b2px * b2px + b2py * b2py);
         if (d < 20) {
-          this.explosions.add({ x: foe.x, y: block.y, energy: 10, vx: Math.random() - 0.5, vy: Math.random() - 0.5 })
-          this.explosions.add({ x: foe.x, y: block.y, energy: 10, vx: Math.random() - 0.5, vy: Math.random() - 0.5 })
-          this.explosions.add({ x: foe.x, y: block.y, energy: 10, vx: Math.random() - 0.5, vy: Math.random() - 0.5 })
+          for (let i = 0; i < 5; i++) {
+            this.explosions.add({ x: foe.x + 5 * Math.random() - 10, y: foe.y + 5 * Math.random() - 10, energy: 10, vx: Math.random() - 0.5, vy: Math.random() - 0.5 })
+          }
 
           this.foes.delete(foe);
           this.bullets.delete(bullet);
@@ -287,6 +294,7 @@ export default class LevelState extends GameState {
     ctx.rotate(block.a);
     ctx.drawImage(this.subCanvas, -20, -20);
     ctx.restore();
+
 
 
     // ctx.fillStyle = "#888";
