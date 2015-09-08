@@ -1,6 +1,7 @@
 import GameState from "./GameState"
 import Body from "./Body"
 import ShipGenerator from "./ShipGenerator"
+import FoeFactory from "./FoeFactory"
 
 const MAXV = 10;
 const WIDTH = 1000;
@@ -12,10 +13,12 @@ export default class LevelState extends GameState {
     super(engine);
 
     let block = new Body(16, 16);
-    block.setPosition(200, 200);
+    block.x = 0.5 * WIDTH;
+    block.y = 0.5 * HEIGHT;
     block.setVelocity(0, 0);
     block.a = 0;
     this.block = block;
+    this.block.shield = 1;
 
     this.bullets = new Set();
     this.bulletTime = 0;
@@ -84,6 +87,8 @@ export default class LevelState extends GameState {
     }
     this.foeSprites = foeSprites;
     this.init();
+
+    this.foeFactory = new FoeFactory(this);
   }
 
   init() {
@@ -93,6 +98,9 @@ export default class LevelState extends GameState {
     this.foeBullets.clear();
     this.bullets.clear();
     this.explosions.clear();
+    this.block.shield = 1;
+    this.block.x = 0.5 * WIDTH;
+    this.block.y = 0.5 * HEIGHT;
   }
 
   update(timestamp) {
@@ -123,16 +131,24 @@ export default class LevelState extends GameState {
     block.a += 0.2 * da;
     block.update();
 
-    if (timestamp - this.foeTime > 500) {
-      let foe = { x: -50, y: Math.sin(timestamp * 0.0001) * HEIGHT * 0.5 + 0.5 * HEIGHT, vx: 2, vy: 0, seq: this.foeSeq++ };
-      foe.lastX = foe.x - foe.vx;
-      foe.lastY = foe.y - foe.vy;
-      this.foes.add(foe);
-      this.foeTime = timestamp;
+    if (block.y < 20) {
+      block.y = 20;
+    } else if (block.y > HEIGHT - 20) {
+      block.y = HEIGHT - 20;
     }
 
-    if (gamePad.fire && (timestamp - this.bulletTime) > 150) {
-      this.bullets.add({ x : WIDTH, y : block.y, vx: -6, vy: 0 });
+    if (block.x < 20) {
+      block.x = 20;
+    } else if (block.x > WIDTH - 20) {
+      block.x = WIDTH - 20;
+    }
+
+    this.foeFactory.spawnTo(this.foes, timestamp);
+
+    if (gamePad.fire && this.block.shield <= 0.5 && (timestamp - this.bulletTime) > 150) {
+      this.bullets.add({ x : WIDTH, y : block.y + 20, vx: -6, vy: 0 });
+      this.bullets.add({ x : WIDTH + 5, y : block.y, vx: -6, vy: 0 });
+      this.bullets.add({ x : WIDTH, y : block.y - 20, vx: -6, vy: 0 });
       this.bulletTime = timestamp;
       this.soundIdx = (this.soundIdx + 1) % 10;
       let sound = this.soundPool[this.soundIdx];
@@ -140,13 +156,7 @@ export default class LevelState extends GameState {
     }
 
     for (let foe of this.foes) {
-      foe.x += foe.vx * 1.5;
-      foe.y = Math.sin(-0.6 * foe.seq + timestamp * 0.001) * HEIGHT * 0.4 + 0.5 * HEIGHT;
-      // foe.y = Math.sin(-0.6 * foe.seq + timestamp * 0.002) * 40 + 50;
-      //if (foe.seq % 2 == 0) foe.y = HEIGHT - foe.y;
-      foe.a = Math.atan2(foe.y - foe.lastY, foe.x - foe.lastX);
-      foe.lastX = foe.x;
-      foe.lastY = foe.y;
+      foe.update(timestamp);
       if (foe.x > 0.01 * WIDTH && Math.random() < 0.01) {
         this.foeBullets.add({ x: 0, y: foe.y, vx: 4, vy: 0, owner: foe});
       }
@@ -157,15 +167,14 @@ export default class LevelState extends GameState {
 
       if (foe.x > WIDTH + 32) {
         this.foes.delete(foe);
-      } else if (d < 32) {
+      } else if (d < 32 && block.shield <= 0) {
         this.foes.delete(foe);
         for (let i = 0; i < 5; i++) {
           this.explosions.add({ x: block.x + 5 * Math.random() - 10, y: block.y+ 5 * Math.random() - 10, energy: 10, vx: Math.random() - 0.5, vy: Math.random() - 0.5 })
         }
 
         this.lives--;
-        block.y = HEIGHT * 0.5;
-        block.x = 100;
+        this.block.shield = 1;
 
         this.explode2Idx = (this.explode2Idx + 1) % 10;
         this.explode2Pool[this.explode2Idx].play();
@@ -173,7 +182,6 @@ export default class LevelState extends GameState {
         this.explodeIdx = (this.explodeIdx + 1) % 10;
         this.explodePool[this.explodeIdx].play();
       }
-
 
     }
 
@@ -217,21 +225,21 @@ export default class LevelState extends GameState {
       let bx = block.x - bullet.x;
       let by = block.y - bullet.y;
       let d2 = Math.sqrt(bx * bx + by * by);
-      if (d2 < 20) {
+      if (d2 < 20 && block.shield <= 0) {
         this.foeBullets.delete(bullet);
         for (let i = 0; i < 5; i++) {
           this.explosions.add({ x: block.x + 5 * Math.random() - 10, y: block.y+ 5 * Math.random() - 10, energy: 10, vx: Math.random() - 0.5, vy: Math.random() - 0.5 })
         }
 
-        block.y = HEIGHT * 0.5;
-        block.x = 100;
-
+        this.block.shield = 1;
         this.lives--;
 
         this.explode2Idx = (this.explode2Idx + 1) % 10;
         this.explode2Pool[this.explode2Idx].play();
       }
     }
+
+    this.block.shield -= 0.01;
 
     for (let bullet of this.bullets) {
       for (let foe of this.foes) {
@@ -261,11 +269,10 @@ export default class LevelState extends GameState {
       }
     }
 
-    if (this.lives == 0) {
+    if (this.lives < 1) {
       this.engine.setState("gameOverState");
     }
 
-    document.title = `Bullets: ${this.bullets.size}`
     // ctx.shadowColor = "#000";
     // ctx.shadowOffsetX = 10;
     // ctx.shadowOffsetY = 10;
@@ -275,11 +282,11 @@ export default class LevelState extends GameState {
     ctx.strokeStyle = "#012";
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
-    let levelx = timestamp * 0.2;
+    let levelx = (timestamp * 0.2) % 50;
     for (let x = 0; x < WIDTH; x+= 50) {
       ctx.beginPath();
-      ctx.moveTo(WIDTH - (x + levelx) % WIDTH, 0);
-      ctx.lineTo(WIDTH - (x + levelx) % WIDTH, HEIGHT);
+      ctx.moveTo(WIDTH - (x + 50 - levelx) % WIDTH, 0);
+      ctx.lineTo(WIDTH - (x + 50 - levelx) % WIDTH, HEIGHT);
       ctx.stroke();
     }
     for (let y = 0; y < HEIGHT; y+= 50) {
@@ -291,7 +298,28 @@ export default class LevelState extends GameState {
 
     ctx.save();
     ctx.translate(block.x, block.y);
+    if (block.shield > 0) {
+      ctx.lineWidth = 2;
+      let alpha = 0.5 * block.shield * (0.75 + 0.25 * Math.sin(timestamp * 0.02));
+      ctx.strokeStyle = `rgba(100,255,255,${alpha})`;
+      ctx.beginPath();
+      ctx.arc(0, 0, 30, 0, Math.PI * 2, false);
+      ctx.stroke();
+      ctx.fillStyle = `rgba(0,100,255,${0.25 * alpha})`;
+      ctx.fill();
+    }
     ctx.rotate(block.a);
+
+    ctx.globalCompositeOperation = "lighter";
+    ctx.fillStyle = `rgba(255,150,10,${(0.75 + 0.25 * Math.cos(timestamp * 0.05))})`;
+    ctx.beginPath();
+    for (let i = 0; i < 5; i++) {
+      ctx.moveTo(0, 7 * Math.random() - 2);
+      ctx.lineTo(0, -7 * Math.random() + 2);
+      ctx.lineTo(- 2.0 * block.vx + 10 * Math.random() - 20, 5 * Math.random() - 2.5);
+    }
+    ctx.fill();
+    ctx.globalCompositeOperation = "source-over";
     ctx.drawImage(this.subCanvas, -20, -20);
     ctx.restore();
 
@@ -322,17 +350,22 @@ export default class LevelState extends GameState {
     ctx.fillStyle = "#00f";
     ctx.strokeStyle = "#0ff";
     for (let foe of this.foes) {
-      // ctx.fillRect(foe.x - 25, foe.y - 25, 50, 50);
-      // ctx.beginPath();
-      // ctx.arc(foe.x, foe.y, 25, 0, 2 * Math.PI, false);
-      // ctx.fill();
-      // ctx.stroke();
-
       ctx.save();
       ctx.translate(foe.x, foe.y);
       ctx.rotate(foe.a);
-      ctx.drawImage(this.foeSprites[foe.seq % 50], -20, -20);
-      // ctx.drawImage(sub2Canvas, foe.x - 25, foe.y - 25);
+
+      ctx.globalCompositeOperation = "lighter";
+      ctx.fillStyle = `rgba(255,150,10,${(0.75 + 0.25 * Math.cos(timestamp * 0.05))})`;
+      ctx.beginPath();
+      for (let i = 0; i < 5; i++) {
+        ctx.moveTo(0, 7 * Math.random() - 2);
+        ctx.lineTo(0, -7 * Math.random() + 2);
+        ctx.lineTo(10 * Math.random() - 20, 5 * Math.random() - 2.5);
+      }
+      ctx.fill();
+      ctx.globalCompositeOperation = "source-over";
+
+      ctx.drawImage(this.foeSprites[foe.sprite], -20, -20);
       ctx.restore();
     }
 
