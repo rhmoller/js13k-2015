@@ -2,10 +2,15 @@ import GameState from "./GameState"
 import Body from "./Body"
 import ShipGenerator from "./ShipGenerator"
 import FoeFactory from "./FoeFactory"
+import Scratch from "./Scratch"
 
 const MAXV = 10;
 const WIDTH = 1000;
 const HEIGHT = 600;
+
+const POWERUP_BULLET_DELAY = 10000;
+const POWERUP_SHIELD_DELAY = 15000;
+const POWERUP_LIFE_DELAY = 20000;
 
 export default class LevelState extends GameState {
 
@@ -31,7 +36,9 @@ export default class LevelState extends GameState {
     this.explosions = new Set();
     this.lastTime = 0;
 
-    this.soundURL = jsfxr([0,,0.1578,,0.1923,0.4813,0.0763,-0.4521,,,,,,0.4145,-0.0485,,,,1,,,0.1648,,0.5]);
+
+    // this.soundURL = jsfxr([0,,0.1578,,0.1923,0.4813,0.0763,-0.4521,,,,,,0.4145,-0.0485,,,,1,,,0.1648,,0.5]);
+    this.soundURL = jsfxr([0,,0.1142,,0.206,0.7893,0.2,-0.3076,,,,,,0.197,0.1255,,0.1282,-0.0075,1,,,,,0.5]);
     this.soundPool = [];
     this.soundIdx = 0;
 
@@ -42,6 +49,20 @@ export default class LevelState extends GameState {
     this.explode2Url = jsfxr([3,,0.3569,0.3891,0.63,0.0483,,,,,,,,,,,0.5952,-0.1039,1,,,,,0.5]);
     this.explode2Pool = [];
     this.explode2Idx = 0;
+
+    this.powerUpUrl = jsfxr([0,,0.1414,,0.497,0.3508,,0.4704,,,,,,0.1086,,0.4007,,,1,,,,,0.5]);
+    this.powerUpSndPool = [];
+    this.powerUpSndIdx = 0;
+
+    this.nextShieldPowerUp = 0;
+    this.nextBulletPowerUp = 0;
+    this.nextLifePowerUp = 0;
+    this.firePower = 1;
+    this.powerUpShield = false;
+    this.flash = 0;
+
+    this.sector = 1;
+    this.sectorAnnounce = 1;
 
     for (let i = 0; i < 10; i++) {
       var player = new Audio();
@@ -55,6 +76,10 @@ export default class LevelState extends GameState {
       var player3 = new Audio();
       player3.src = this.explode2Url;
       this.explode2Pool.push(player3);
+
+      var player4 = new Audio();
+      player4.src = this.powerUpUrl;
+      this.powerUpSndPool.push(player4);
     }
 
     let generator = new ShipGenerator();
@@ -86,9 +111,12 @@ export default class LevelState extends GameState {
       foeSprites.push(sub2Canvas);
     }
     this.foeSprites = foeSprites;
+    this.foeFactory = new FoeFactory(this);
     this.init();
 
-    this.foeFactory = new FoeFactory(this);
+    this.shieldPowerUp = null;
+    this.bulletPowerUp = null;
+    this.lifePowerUp = null;
   }
 
   init() {
@@ -101,6 +129,18 @@ export default class LevelState extends GameState {
     this.block.shield = 1;
     this.block.x = 0.5 * WIDTH;
     this.block.y = 0.5 * HEIGHT;
+    this.scratch = new Scratch();
+    this.foeFactory.hardness = 1;
+
+    this.nextShieldPowerUp = performance.now() + POWERUP_SHIELD_DELAY;
+    this.nextBulletPowerUp = performance.now() + POWERUP_BULLET_DELAY;
+    this.nextLifePowerUp = performance.now() + POWERUP_LIFE_DELAY;
+    this.firePower = 1;
+    this.powerUpShield = true;
+    this.flash = 0;
+
+    this.sector = 1;
+    this.sectorAnnounce = 1;
   }
 
   update(timestamp) {
@@ -145,19 +185,130 @@ export default class LevelState extends GameState {
 
     this.foeFactory.spawnTo(this.foes, timestamp);
 
-    if (gamePad.fire && this.block.shield <= 0.5 && (timestamp - this.bulletTime) > 150) {
-      this.bullets.add({ x : WIDTH, y : block.y + 20, vx: -6, vy: 0 });
-      this.bullets.add({ x : WIDTH + 5, y : block.y, vx: -6, vy: 0 });
-      this.bullets.add({ x : WIDTH, y : block.y - 20, vx: -6, vy: 0 });
+    if (gamePad.fire && (this.powerUpShield || this.block.shield <= 0.5) && (timestamp - this.bulletTime) > 150) {
+      switch (this.firePower) {
+        case 1:
+          this.bullets.add({ x : WIDTH, y : block.y, vx: -6, vy: 0 });
+        break;
+        case 2:
+          this.bullets.add({ x : WIDTH, y : block.y - 10, vx: -6, vy: 0 });
+          this.bullets.add({ x : WIDTH, y : block.y + 10, vx: -6, vy: 0 });
+        break;
+        case 3:
+          this.bullets.add({ x : WIDTH, y : block.y + 20, vx: -6, vy: 0 });
+          this.bullets.add({ x : WIDTH + 5, y : block.y, vx: -6, vy: 0 });
+          this.bullets.add({ x : WIDTH, y : block.y - 20, vx: -6, vy: 0 });
+        break;
+        case 4:
+          this.bullets.add({ x : WIDTH, y : block.y - 10, vx: -6, vy: 0 });
+          this.bullets.add({ x : WIDTH + 5, y : block.y + 10, vx: -6, vy: 0 });
+          this.bullets.add({ x : WIDTH + 5, y : block.y - 30, vx: -6, vy: 0 });
+          this.bullets.add({ x : WIDTH, y : block.y + 30, vx: -6, vy: 0 });
+        break;
+        case 5:
+        this.bullets.add({ x : WIDTH, y : block.y + 40, vx: -6, vy: 0 });
+          this.bullets.add({ x : WIDTH + 5, y : block.y + 20, vx: -6, vy: 0 });
+          this.bullets.add({ x : WIDTH + 10, y : block.y, vx: -6, vy: 0 });
+          this.bullets.add({ x : WIDTH + 5, y : block.y - 20, vx: -6, vy: 0 });
+          this.bullets.add({ x : WIDTH, y : block.y - 40, vx: -6, vy: 0 });
+        break;
+      }
       this.bulletTime = timestamp;
       this.soundIdx = (this.soundIdx + 1) % 10;
       let sound = this.soundPool[this.soundIdx];
       sound.play();
     }
 
+    if (this.shieldPowerUp == null && this.nextShieldPowerUp < timestamp) {
+      this.shieldPowerUp = {
+        x: WIDTH + 10,
+        y: Math.cos(timestamp * 0.0001) * HEIGHT * 0.4 + 0.5 * HEIGHT
+      };
+    }
+
+    if (this.shieldPowerUp) {
+      this.shieldPowerUp.x -= 1;
+      this.shieldPowerUp.y = Math.cos(timestamp * 0.0001) * HEIGHT * 0.4 + 0.5 * HEIGHT
+
+      let dx = this.shieldPowerUp.x - block.x;
+      let dy = this.shieldPowerUp.y - block.y;
+      let d = Math.sqrt(dx * dx + dy * dy);
+      if (d < 30) {
+        this.shieldPowerUp = null;
+        this.nextShieldPowerUp = timestamp + POWERUP_SHIELD_DELAY;
+        this.block.shield = 1;
+        this.powerUpShield = true;
+        this.powerUpSndIdx = (this.powerUpSndIdx + 1) % 10;
+        let sound = this.powerUpSndPool[this.powerUpSndIdx];
+        sound.play();
+      }
+      if (this.shieldPowerUp.x < 0) {
+        this.shieldPowerUp = null;
+        this.nextShieldPowerUp = timestamp + POWERUP_SHIELD_DELAY;
+      }
+    }
+
+    if (this.bulletPowerUp == null && this.nextBulletPowerUp < timestamp && this.firePower < 5) {
+      this.bulletPowerUp = {
+        x: WIDTH + 10,
+        y: Math.cos(timestamp * 0.0001) * HEIGHT * 0.4 + 0.5 * HEIGHT
+      };
+    }
+
+    if (this.bulletPowerUp) {
+      this.bulletPowerUp.x -= 1;
+      this.bulletPowerUp.y = Math.cos(timestamp * 0.0002) * HEIGHT * 0.4 + 0.5 * HEIGHT
+
+      let dx = this.bulletPowerUp.x - block.x;
+      let dy = this.bulletPowerUp.y - block.y;
+      let d = Math.sqrt(dx * dx + dy * dy);
+      if (d < 30) {
+        this.bulletPowerUp = null;
+        this.nextBulletPowerUp = timestamp + POWERUP_BULLET_DELAY;
+        this.firePower++;
+        this.powerUpSndIdx = (this.powerUpSndIdx + 1) % 10;
+        let sound = this.powerUpSndPool[this.powerUpSndIdx];
+        sound.play();
+      }
+      if (this.bulletPowerUp.x < 0) {
+        this.bulletPowerUp = null;
+        this.nextBulletPowerUp = timestamp + POWERUP_BULLET_DELAY;
+      }
+    }
+
+    if (this.lifePowerUp == null && this.nextLifePowerUp < timestamp) {
+      this.lifePowerUp = {
+        x: WIDTH + 10,
+        y: Math.cos(timestamp * 0.0001) * HEIGHT * 0.4 + 0.5 * HEIGHT
+      };
+    }
+
+    if (this.lifePowerUp) {
+      this.lifePowerUp.x -= 1;
+      this.lifePowerUp.y = Math.cos(timestamp * 0.0003) * HEIGHT * 0.4 + 0.5 * HEIGHT
+
+      let dx = this.lifePowerUp.x - block.x;
+      let dy = this.lifePowerUp.y - block.y;
+      let d = Math.sqrt(dx * dx + dy * dy);
+      if (d < 30) {
+        this.lifePowerUp = null;
+        this.nextLifePowerUp = timestamp + POWERUP_LIFE_DELAY;
+        this.lives++;
+        this.powerUpSndIdx = (this.powerUpSndIdx + 1) % 10;
+        let sound = this.powerUpSndPool[this.powerUpSndIdx];
+        sound.play();
+      }
+      if (this.lifePowerUp.x < 0) {
+        this.lifePowerUp = null;
+        this.nextLifePowerUp = timestamp + POWERUP_LIFE_DELAY;
+      }
+    }
+
+
+
     for (let foe of this.foes) {
       foe.update(timestamp);
-      if (foe.x > 0.01 * WIDTH && Math.random() < 0.01) {
+      if (foe.x > 0.01 * WIDTH && Math.random() < 0.005) {
         this.foeBullets.add({ x: 0, y: foe.y, vx: 4, vy: 0, owner: foe});
       }
 
@@ -175,6 +326,9 @@ export default class LevelState extends GameState {
 
         this.lives--;
         this.block.shield = 1;
+        this.powerUpShield = false;
+        this.firePower = 1;
+        this.flash = 1;
 
         this.explode2Idx = (this.explode2Idx + 1) % 10;
         this.explode2Pool[this.explode2Idx].play();
@@ -182,7 +336,6 @@ export default class LevelState extends GameState {
         this.explodeIdx = (this.explodeIdx + 1) % 10;
         this.explodePool[this.explodeIdx].play();
       }
-
     }
 
     for (let bullet of this.bullets) {
@@ -233,13 +386,16 @@ export default class LevelState extends GameState {
 
         this.block.shield = 1;
         this.lives--;
+        this.powerUpShield = false;
+        this.firePower = ;
+        this.flash = 1;
 
         this.explode2Idx = (this.explode2Idx + 1) % 10;
         this.explode2Pool[this.explode2Idx].play();
       }
     }
 
-    this.block.shield -= 0.01;
+    this.block.shield -= 0.005;
 
     for (let bullet of this.bullets) {
       for (let foe of this.foes) {
@@ -278,10 +434,17 @@ export default class LevelState extends GameState {
     // ctx.shadowOffsetY = 10;
     // ctx.shadowBlur = 5;
 
-    ctx.fillStyle = "#001";
-    ctx.strokeStyle = "#012";
-    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    this.flash -= 0.05;
+    if (this.flash > 0) {
+      let r = (255 * this.flash) | 0
+      ctx.fillStyle = `rgb(${r}, 0, 16)`;
+      ctx.strokeStyle = `rgb(${r}, 16, 33)`;
+    } else {
+      ctx.fillStyle = "#001";
+      ctx.strokeStyle = "#012";
+    }
 
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
     let levelx = (timestamp * 0.2) % 50;
     for (let x = 0; x < WIDTH; x+= 50) {
       ctx.beginPath();
@@ -294,6 +457,21 @@ export default class LevelState extends GameState {
       ctx.moveTo(0, y);
       ctx.lineTo(WIDTH, y);
       ctx.stroke();
+    }
+
+    if (this.foeFactory.hardness / 10 > this.sector) {
+      this.sector++;
+      this.sectorAnnounce = 1;
+    }
+
+    this.sectorAnnounce -= 0.005;
+    if (this.sectorAnnounce > 0) {
+      ctx.font = "30px sans-serif";
+      ctx.fillStyle = `rgba(255,255,255,${this.sectorAnnounce})`;
+
+      let text = `Approaching sector ${this.sector}`;
+      let textSize = ctx.measureText(text);
+      ctx.fillText(text, 0.5 * (WIDTH - textSize.width), HEIGHT - 50);
     }
 
     ctx.save();
@@ -324,7 +502,41 @@ export default class LevelState extends GameState {
     ctx.restore();
 
 
+    if (this.shieldPowerUp) {
+      let alpha = 0.5 + 0.3 * Math.cos(0.01 * timestamp);
+      ctx.fillStyle = `rgba(255,255,0,${alpha * 0.1})`;
+      ctx.beginPath();
+      ctx.arc(this.shieldPowerUp.x, this.shieldPowerUp.y, 16, 0, Math.PI * 2, false);
+      ctx.fill();
+      ctx.fillStyle = `rgba(255,255,0,${alpha})`;
+      ctx.beginPath();
+      ctx.arc(this.shieldPowerUp.x, this.shieldPowerUp.y, 8, 0, Math.PI * 2, false);
+      ctx.fill();
+    }
 
+    if (this.bulletPowerUp) {
+      let alpha = 0.5 + 0.3 * Math.cos(0.01 * timestamp);
+      ctx.fillStyle = `rgba(0,255,255,${alpha * 0.1})`;
+      ctx.beginPath();
+      ctx.arc(this.bulletPowerUp.x, this.bulletPowerUp.y, 16, 0, Math.PI * 2, false);
+      ctx.fill();
+      ctx.fillStyle = `rgba(0,255,255,${alpha})`;
+      ctx.beginPath();
+      ctx.arc(this.bulletPowerUp.x, this.bulletPowerUp.y, 8, 0, Math.PI * 2, false);
+      ctx.fill();
+    }
+
+    if (this.lifePowerUp) {
+      let alpha = 0.5 + 0.3 * Math.cos(0.01 * timestamp);
+      ctx.fillStyle = `rgba(255,0,0,${alpha * 0.1})`;
+      ctx.beginPath();
+      ctx.arc(this.lifePowerUp.x, this.lifePowerUp.y, 16, 0, Math.PI * 2, false);
+      ctx.fill();
+      ctx.fillStyle = `rgba(255,0,0,${alpha})`;
+      ctx.beginPath();
+      ctx.arc(this.lifePowerUp.x, this.lifePowerUp.y, 8, 0, Math.PI * 2, false);
+      ctx.fill();
+    }
     // ctx.fillStyle = "#888";
     // ctx.lineWidth = 2;
     // ctx.strokeStyle = "#fff";
@@ -367,6 +579,24 @@ export default class LevelState extends GameState {
 
       ctx.drawImage(this.foeSprites[foe.sprite], -20, -20);
       ctx.restore();
+/*
+      if (foe.controller.bezier) {
+        ctx.fillStyle = "#ff0";
+        for (let i = 0; i < foe.controller.segments; i += 0.01) {
+          let pt = foe.controller.bezier.getPoint(i);
+          ctx.fillRect(pt.x - 1, pt.y - 1, 3, 3);
+        }
+
+        ctx.beginPath();
+        ctx.strokeStyle = "rgba(255, 0, 0, 0.75)"
+        ctx.moveTo(foe.controller.bezier.controlPoints[0].x, foe.controller.bezier.controlPoints[0].y);
+        for (let pt of foe.controller.bezier.controlPoints) {
+          ctx.lineTo(pt.x, pt.y);
+        }
+        ctx.stroke();
+
+      }
+*/
     }
 
     ctx.globalCompositeOperation = "lighter";
@@ -398,7 +628,10 @@ export default class LevelState extends GameState {
     let livesText = `${this.lives} lives`;
     ctx.fillText(livesText, WIDTH - (20 + ctx.measureText(livesText).width), 20);
     ctx.fillText(`Score: ${this.score}`, 20, 20);
+    ctx.fillText(`Sector: ${this.sector}`, 400, 20);
+    ctx.fillText(`Wave: ${this.foeFactory.hardness%10}`, 600, 20);
 
+    this.scratch.update(ctx, timestamp);
     this.lastTime = timestamp;
   }
 }

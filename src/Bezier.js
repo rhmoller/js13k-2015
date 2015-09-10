@@ -6,7 +6,8 @@ export default class Bezier {
 
   getPoint(pt) {
     let pti = pt | 0;
-    let pt1 = 2 * pti;
+
+    let pt1 = pti * 2;
     let pt2 = Math.min(pt1 + 1, this.controlPoints.length);
     let pt3 = Math.min(pt1 + 2, this.controlPoints.length);
 

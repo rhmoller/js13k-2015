@@ -20,6 +20,5 @@ gameStates.aboutState = new AboutState(engine);
 
 engine.gameStates = gameStates;
 
-// engine.setState("titleState");
-engine.setState("levelState");
+engine.setState("titleState");
 engine.start();

@@ -43,7 +43,6 @@ export default class ControlState extends GameState {
     ctx.stroke();
     ctx.restore();
 
-
     ctx.font = "112px sans-serif";
     ctx.fillStyle = "#fff";
     let textSize = ctx.measureText("Controls");
