@@ -16,7 +16,8 @@ export default class GamePad {
     this.canvas = canvas;
 
     window.addEventListener("keydown", (e) => {
-      let passThrough = false;
+      let passThrough = e.ctrlKey || e.metaKey;
+
       switch (e.keyCode) {
         case 37: this.left = true; break;
         case 38: this.up = true; break;
