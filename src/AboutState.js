@@ -47,7 +47,7 @@ export default class AboutState extends GameState {
 
     ctx.font = "24px sans-serif";
 
-    this.engine.centerText("Bullet pull is a classic space shooter ...", 250);
+    this.engine.centerText("Galactic Backfire is a classic space shooter ...", 250);
     this.engine.centerText("... but it is running in reverse!", 280);
 
     this.engine.centerText("You must get behind the enemy", 340);
