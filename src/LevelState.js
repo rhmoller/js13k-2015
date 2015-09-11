@@ -313,8 +313,7 @@ export default class LevelState extends GameState {
         this.powerUpSndIdx = (this.powerUpSndIdx + 1) % 10;
         let sound = this.powerUpSndPool[this.powerUpSndIdx];
         sound.play();
-      }
-      if (this.bulletPowerUp.x < 0) {
+      } else if (this.bulletPowerUp.x < 0) {
         this.bulletPowerUp = null;
         this.nextBulletPowerUp = timestamp + POWERUP_BULLET_DELAY;
       }
