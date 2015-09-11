@@ -42,7 +42,6 @@ export default class ControlState extends GameState {
 
     ctx.font = "112px sans-serif";
     ctx.fillStyle = "#fff";
-    let textSize = ctx.measureText("Controls");
-    ctx.fillText("Controls", 0.5 * (WIDTH - textSize.width), 200);
+    this.engine.centerText("Controls", 200);
   }
 }

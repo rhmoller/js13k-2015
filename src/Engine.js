@@ -45,4 +45,9 @@ export default class Engine {
     this.state.init();
   }
 
+  centerText(text, y) {
+    let textSize = this.ctx.measureText(text);
+    this.ctx.fillText(text, 0.5 * (this.width - textSize.width), y);
+  }
+
 }

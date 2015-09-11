@@ -55,24 +55,21 @@ export default class TitleState extends GameState {
     ctx.stroke();
     ctx.restore();
 
-    ctx.font = "112px sans-serif";
-    ctx.fillStyle = "#fff";
-    let textSize = ctx.measureText("\"Bullet Pull\"");
-    ctx.fillText("\"Bullet Pull\"", 0.5 * (this.engine.width - textSize.width), 200);
-
-    ctx.font = "20px sans-serif";
-    ctx.fillStyle = "#fff";
-    textSize = ctx.measureText("Backwards through space and time");
-    ctx.fillText("Backwards through space and time", 0.5 * (this.engine.width - textSize.width), 250);
-
     ctx.fillStyle = "rgba(128,255,255,0.1)";
     ctx.fillRect(0, 320 + this.selected * 40, this.engine.width, 40);
 
-    ctx.font = "32px sans-serif";
     ctx.fillStyle = "#fff";
-    ctx.fillText("New Game", 0.5 * (this.engine.width - ctx.measureText("New Game").width), 350);
-    ctx.fillText("Controls", 0.5 * (this.engine.width - ctx.measureText("Controls").width), 390);
-    ctx.fillText("About", 0.5 * (this.engine.width - ctx.measureText("About").width), 430);
+
+    ctx.font = "112px sans-serif";
+    this.engine.centerText("\"Bullet Pull\"", 200);
+
+    ctx.font = "20px sans-serif";
+    this.engine.centerText("Backwards through space and time");
+
+    ctx.font = "32px sans-serif";
+    this.engine.centerText("New Game", 350);
+    this.engine.centerText("Controls", 390);
+    this.engine.centerText("About", 430);
   }
 
 }

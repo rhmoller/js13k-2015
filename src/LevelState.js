@@ -146,6 +146,10 @@ export default class LevelState extends GameState {
     let block = this.block;
     let gamePad = this.engine.gamepad;
 
+    if (gamePad.esc) {
+      this.engine.setState("titleState");
+    }
+
     if (gamePad.left) {
       block.vx = -4;
     } else if (gamePad.right) {
@@ -462,9 +466,7 @@ export default class LevelState extends GameState {
       ctx.font = "30px sans-serif";
       ctx.fillStyle = `rgba(255,255,255,${this.sectorAnnounce})`;
 
-      let text = `Approaching sector ${this.sector}`;
-      let textSize = ctx.measureText(text);
-      ctx.fillText(text, 0.5 * (this.engine.width - textSize.width), this.engine.height - 50);
+      this.engine.centerText(`Approaching sector ${this.sector}`, this.engine.height - 50);
     }
 
     ctx.save();

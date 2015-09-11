@@ -43,17 +43,10 @@ export default class GameOverState extends GameState {
 
     ctx.font = "112px sans-serif";
     ctx.fillStyle = "#fff";
-    let textSize = ctx.measureText("Game Over");
-    ctx.fillText("Game Over", 0.5 * (this.engine.width - textSize.width), 200);
+    this.engine.centerText("Game Over", 200);
 
     ctx.font = "32px sans-serif";
-    ctx.fillStyle = "#fff";
-
-    let scoreText = `Score: ${this.engine.gameStates.levelState.score}`;
-    ctx.fillText(scoreText, 0.5 * (this.engine.width - ctx.measureText(scoreText).width), 400);
-
-    let sectorText = `Sector: ${this.engine.gameStates.levelState.sector}`;
-    ctx.fillText(sectorText, 0.5 * (this.engine.width - ctx.measureText(sectorText).width), 350);
-
+    this.engine.centerText(`Sector: ${this.engine.gameStates.levelState.sector}`, 350);
+    this.engine.centerText(`Score: ${this.engine.gameStates.levelState.score}`, 400);
   }
 }

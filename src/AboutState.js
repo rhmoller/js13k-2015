@@ -7,7 +7,7 @@ export default class AboutState extends GameState {
   }
 
   init() {
-    this.uiTime = engine.timestamp;
+    this.uiTime = this.engine.timestamp;
     this.engine.gamepad.fire = false;
   }
 
@@ -44,7 +44,6 @@ export default class AboutState extends GameState {
 
     ctx.font = "112px sans-serif";
     ctx.fillStyle = "#fff";
-    let textSize = ctx.measureText("About");
-    ctx.fillText("About", 0.5 * (this.engine.width - textSize.width), 200);
+    this.engine.centerText("About", 200);
   }
 }
