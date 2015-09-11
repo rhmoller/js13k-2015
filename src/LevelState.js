@@ -34,6 +34,8 @@ export default class LevelState extends GameState {
     this.explosions = new Set();
     this.lastTime = 0;
 
+    this.smoke = new Set();
+    this.lastSmoke = 0;
 
     // this.soundURL = jsfxr([0,,0.1578,,0.1923,0.4813,0.0763,-0.4521,,,,,,0.4145,-0.0485,,,,1,,,0.1648,,0.5]);
     this.soundURL = jsfxr([0,,0.1142,,0.206,0.7893,0.2,-0.3076,,,,,,0.197,0.1255,,0.1282,-0.0075,1,,,,,0.5]);
@@ -118,11 +120,12 @@ export default class LevelState extends GameState {
 
   init() {
     this.score = 0;
-    this.lives = 3;
+    this.lives = 1;
     this.foes.clear();
     this.foeBullets.clear();
     this.bullets.clear();
     this.explosions.clear();
+    this.smoke.clear();
     this.block.shield = 1;
     this.block.x = 0.5 * this.engine.width;
     this.block.y = 0.5 * this.engine.height;
@@ -137,6 +140,10 @@ export default class LevelState extends GameState {
 
     this.sector = 1;
     this.sectorAnnounce = 1;
+
+    this.dead = false;
+    this.deathTime = 0;
+    this.deathPos = null;
   }
 
   update(timestamp) {
@@ -150,30 +157,58 @@ export default class LevelState extends GameState {
       this.engine.setState("titleState");
     }
 
-    if (gamePad.left) {
-      block.vx = -4;
-    } else if (gamePad.right) {
-      block.vx = 4;
+    if (!this.dead) {
+      if (gamePad.left) {
+        block.vx = -4;
+      } else if (gamePad.right) {
+        block.vx = 4;
+      } else {
+        block.vx = 0;
+      }
+
+      if (gamePad.up) {
+        block.vy = -4;
+      } else if (gamePad.down) {
+        block.vy = 4;
+      } else {
+        block.vy = 0;
+      }
     } else {
-      block.vx = 0;
+      this.block.vx = 1;
+      this.block.vy = 2;
     }
 
-    if (gamePad.up) {
-      block.vy = -4;
-    } else if (gamePad.down) {
-      block.vy = 4;
+    if (!this.dead) {
+      let targetA = Math.atan2(block.vy, 12);
+      let da = targetA - block.a;
+      block.a += 0.2 * da;
     } else {
-      block.vy = 0;
+      block.a += 0.1;
+      if (this.lastSmoke + 100 < timestamp) {
+        this.smoke.add({
+          "x": this.block.x,
+          "y": this.block.y,
+          "vx": Math.random() * 0.5 - 1,
+          "vy": -1,
+          "t": timestamp,
+          "a": 1
+        });
+        this.smoke.add({
+          "x": this.block.x,
+          "y": this.block.y,
+          "vx": Math.random() * 0.5 - 1,
+          "vy": -1.5,
+          "t": timestamp,
+          "a": 1
+        });
+        this.lastSmoke = timestamp;
+      }
     }
-
-    let targetA = Math.atan2(block.vy, 12);
-    let da = targetA - block.a;
-    block.a += 0.2 * da;
     block.update();
 
     if (block.y < 20) {
       block.y = 20;
-    } else if (block.y > this.engine.height - 20) {
+    } else if (block.y > this.engine.height - 20 && !block.dead) {
       block.y = this.engine.height - 20;
     }
 
@@ -185,7 +220,7 @@ export default class LevelState extends GameState {
 
     this.foeFactory.spawnTo(this.foes, timestamp);
 
-    if (gamePad.fire && (timestamp - this.bulletTime) > 150) {
+    if (!this.dead && gamePad.fire && (timestamp - this.bulletTime) > 150) {
       switch (this.firePower) {
         case 1:
           this.bullets.add({ x : this.engine.width, y : block.y, vx: -6, vy: 0 });
@@ -303,7 +338,15 @@ export default class LevelState extends GameState {
       }
     }
 
-
+    this.smoke.forEach(sm => {
+      sm.x += sm.vx;
+      sm.y += sm.vy;
+      sm.a -= 0.01;
+      if (sm.a < 0) sm.a = 0;
+      if (sm.t < this.timestamp - 2000) {
+        this.smoke.delete(sm);
+      }
+    });
 
     this.foes.forEach(foe => {
       foe.update(timestamp);
@@ -422,7 +465,13 @@ export default class LevelState extends GameState {
       }
     });
 
-    if (this.lives < 1) {
+    if (this.lives < 1 && !this.dead) {
+      this.dead = true;
+      this.deathTime = timestamp;
+      this.deathPos = { x: block.x, y: block.y };
+    }
+
+    if (this.dead && (timestamp - this.deathTime) > 3000) {
       this.engine.setState("gameOverState");
     }
 
@@ -552,6 +601,16 @@ export default class LevelState extends GameState {
     ctx.fillStyle = "#f0f";
     this.foeBullets.forEach(bullet => {
       ctx.fillRect(bullet.x - 6, bullet.y - 2, 12, 4);
+    });
+
+    this.smoke.forEach(sm => {
+      console.log(sm.a);
+      let c = (sm.a * 100)|0;
+      ctx.fillStyle = `rgba(${c},${c},${c},${sm.a})`;
+      ctx.beginPath();
+      let r = 4 + (timestamp - sm.t) / 50;
+      ctx.arc(sm.x, sm.y, r, 0, 2 * Math.PI, false);
+      ctx.fill();
     });
 
     ctx.fillStyle = "#00f";
