@@ -162,20 +162,26 @@ export default class LevelState extends GameState {
     }
 
     if (!this.dead) {
-      if (gamePad.left) {
-        block.vx = -4;
-      } else if (gamePad.right) {
-        block.vx = 4;
+      if (gamePad.touchId) {
+        let a = Math.atan2(gamePad.touchDy, gamePad.touchDx);
+        block.vx = Math.cos(a) * 4;
+        block.vy = Math.cos(a) * 4;
       } else {
-        block.vx = 0;
-      }
+        if (gamePad.left) {
+          block.vx = -4;
+        } else if (gamePad.right) {
+          block.vx = 4;
+        } else {
+          block.vx = 0;
+        }
 
-      if (gamePad.up) {
-        block.vy = -4;
-      } else if (gamePad.down) {
-        block.vy = 4;
-      } else {
-        block.vy = 0;
+        if (gamePad.up) {
+          block.vy = -4;
+        } else if (gamePad.down) {
+          block.vy = 4;
+        } else {
+          block.vy = 0;
+        }
       }
     } else {
       this.block.vx = 1;
@@ -668,14 +674,6 @@ export default class LevelState extends GameState {
     let livesText = `${this.lives} lives`;
     ctx.fillText(livesText, this.engine.width - (20 + ctx.measureText(livesText).width), 20);
     ctx.fillText(`Score: ${this.score}`, 20, 20);
-
-    ctx.strokeStyle = "#ff0";
-    if (gamePad.touchId || true) {
-      ctx.beginPath();
-      ctx.moveTo(gamePad.touchStartX, gamePad.touchStartY);
-      ctx.lineTo(gamePad.touchStartX + gamePad.touchDx, gamePad.touchStartY + gamePad.touchDy);
-      ctx.stroke();
-    }
 
     this.scratch.update(ctx, timestamp);
     this.lastTime = timestamp;

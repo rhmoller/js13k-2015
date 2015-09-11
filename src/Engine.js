@@ -17,12 +17,27 @@ export default class Engine {
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, width, height);
 
-    document.body.appendChild(canvas);
+    let stage = document.getElementById("game");
+    stage.appendChild(canvas);
     document.body.style.backgroundColor = "#000";
     document.body.style.align = "center";
     canvas.style.marginLeft = "auto";
     canvas.style.marginRight = "auto";
     canvas.style.display = "block";
+
+    let resizer = function () {
+      let scaleX = window.innerWidth / width;
+      let scaleY = window.innerHeight / height;
+      let scale = Math.min(scaleX, scaleY);
+      canvas.style.width = width * scale + "px";
+      canvas.style.height = height * scale + "px";
+      document.body.scrollLeft = 0;
+      document.body.scrollTop = 0;
+    }
+    resizer();
+
+    window.addEventListener("resize", resizer, false);
+    window.addEventListener("orientationChange", resizer, false);
 
     this.canvas = canvas;
     this.ctx = ctx;

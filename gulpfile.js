@@ -49,9 +49,3 @@ gulp.task("default", [ "bundle", "assets" ], function () {
 
   gulp.watch("./assets/**/*.*", [ "assets" ]);
 });
-
-gulp.task("minify", function () {
-  return gulp.src("build/game.js")
-    .pipe(uglify())
-    .pipe(gulp.dest("build/minified"));
-});
