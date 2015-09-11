@@ -1,4 +1,5 @@
 import GameState from "./GameState"
+import ShipGenerator from "./ShipGenerator"
 
 export default class TitleState extends GameState {
 
@@ -6,6 +7,23 @@ export default class TitleState extends GameState {
     super(engine);
     this.selected = 0;
     this.uiTime = this.engine.timestamp;
+
+    let generator = new ShipGenerator();
+    let foeSprites = [];
+    for (let i = 0; i < 50; i++) {
+      let sub2Canvas = document.createElement("canvas");
+      sub2Canvas.width = 40;
+      sub2Canvas.height = 40;
+      let sub2Ctx = sub2Canvas.getContext("2d");
+      // subCtx.fillStyle = "#000";
+      // subCtx.fillRect(0, 0, 40, 40);
+      sub2Ctx.translate(20, 20);
+      sub2Ctx.rotate(-0.5 * Math.PI);
+      sub2Ctx.scale(0.2, 0.2);
+      generator.paintShip(sub2Ctx);
+      foeSprites.push(sub2Canvas);
+    }
+    this.foeSprites = foeSprites;
   }
 
   update(timestamp) {
@@ -55,13 +73,27 @@ export default class TitleState extends GameState {
     ctx.stroke();
     ctx.restore();
 
+    ctx.globalAlpha = 0.2;
+    let rot = this.engine.timestamp * 0.0005;
+    for (let i = 0; i < 50; i++) {
+      let a = Math.PI / 25;
+      let x = 0.5 * this.engine.width + Math.cos(a * i + rot) * (this.engine.width - 50) * 0.5;
+      let y = 0.5 * this.engine.height + Math.sin(a * i + rot) * (this.engine.height - 50) * 0.5;
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(a * i + rot + Math.PI * 0.5);
+      ctx.drawImage(this.foeSprites[i], 0, 0);
+      ctx.restore();
+    }
+    ctx.globalAlpha = 1;
+
     ctx.fillStyle = "rgba(128,255,255,0.1)";
     ctx.fillRect(0, 320 + this.selected * 40, this.engine.width, 40);
 
     ctx.fillStyle = "#fff";
 
     ctx.font = "112px sans-serif";
-    this.engine.centerText("\"Bullet Pull\"", 200);
+    this.engine.centerText("\"Bullet Pull\"", 250);
 
     ctx.font = "20px sans-serif";
     this.engine.centerText("Backwards through space and time");

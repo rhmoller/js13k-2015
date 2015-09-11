@@ -41,9 +41,22 @@ export default class AboutState extends GameState {
     ctx.stroke();
     ctx.restore();
 
-
     ctx.font = "112px sans-serif";
     ctx.fillStyle = "#fff";
-    this.engine.centerText("About", 200);
+    this.engine.centerText("About", 150);
+
+    ctx.font = "24px sans-serif";
+
+    this.engine.centerText("Bullet pull is a classic space shooter ...", 250);
+    this.engine.centerText("... but it is running in reverse!", 280);
+
+    this.engine.centerText("You must get behind the enemy", 340);
+    this.engine.centerText("and pull bullets into them.", 370);
+
+    this.engine.centerText("Written by Rene Hangstrup Møller", 430);
+    this.engine.centerText("For the JS13K Competition 2015.", 460);
+
+    this.engine.centerText("Press ESC to exit to menu", 520);
+
   }
 }

@@ -606,7 +606,7 @@ export default class LevelState extends GameState {
     ctx.fillText(livesText, this.engine.width - (20 + ctx.measureText(livesText).width), 20);
     ctx.fillText(`Score: ${this.score}`, 20, 20);
     ctx.fillText(`Sector: ${this.sector}`, 400, 20);
-    ctx.fillText(`Wave: ${this.foeFactory.hardness%10}`, 600, 20);
+    ctx.fillText(`Wave: ${this.foeFactory.hardness}`, 600, 20);
 
     ctx.strokeStyle = "#ff0";
     if (gamePad.touchId || true) {

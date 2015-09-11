@@ -42,6 +42,17 @@ export default class ControlState extends GameState {
 
     ctx.font = "112px sans-serif";
     ctx.fillStyle = "#fff";
-    this.engine.centerText("Controls", 200);
+    this.engine.centerText("Controls", 150);
+
+    ctx.font = "24px sans-serif";
+
+    this.engine.centerText("Move your space ship with", 250);
+    this.engine.centerText("WASD or arrow keys", 280);
+
+    this.engine.centerText("Shoot with", 340);
+    this.engine.centerText("Space or enter", 370);
+
+    this.engine.centerText("Press ESC to exit to menu", 430);
+
   }
 }
