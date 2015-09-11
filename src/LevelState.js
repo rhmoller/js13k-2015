@@ -120,7 +120,7 @@ export default class LevelState extends GameState {
 
   init() {
     this.score = 0;
-    this.lives = 1;
+    this.lives = 3;
     this.foes.clear();
     this.foeBullets.clear();
     this.bullets.clear();
@@ -129,13 +129,15 @@ export default class LevelState extends GameState {
     this.block.shield = 1;
     this.block.x = 0.5 * this.engine.width;
     this.block.y = 0.5 * this.engine.height;
+    this.block.setVelocity(0, 0);
+    this.block.a = 0;
     this.scratch = new Scratch();
     this.foeFactory.hardness = 1;
 
     this.nextShieldPowerUp = this.engine.timestamp + POWERUP_SHIELD_DELAY;
     this.nextBulletPowerUp = this.engine.timestamp + POWERUP_BULLET_DELAY;
     this.nextLifePowerUp = this.engine.timestamp + POWERUP_LIFE_DELAY;
-    this.firePower = 3;
+    this.firePower = 2;
     this.flash = 0;
 
     this.sector = 1;
@@ -368,7 +370,7 @@ export default class LevelState extends GameState {
 
         this.lives--;
         this.block.shield = 1;
-        this.firePower = 3;
+        this.firePower = Math.max(1, this.firePower - 1);
         this.flash = 1;
 
         this.explode2Idx = (this.explode2Idx + 1) % 10;
@@ -427,7 +429,7 @@ export default class LevelState extends GameState {
 
         this.block.shield = 1;
         this.lives--;
-        this.firePower = 3;
+        this.firePower = Math.max(1, this.firePower - 1);
         this.flash = 1;
 
         this.explode2Idx = (this.explode2Idx + 1) % 10;

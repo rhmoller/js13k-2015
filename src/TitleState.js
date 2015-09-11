@@ -87,21 +87,21 @@ export default class TitleState extends GameState {
     }
     ctx.globalAlpha = 1;
 
-    ctx.fillStyle = "rgba(128,255,255,0.1)";
-    ctx.fillRect(0, 320 + this.selected * 40, this.engine.width, 40);
+    ctx.fillStyle = `rgba(128,255,255,${0.15+0.05*Math.cos(timestamp*0.005)})`;
+    ctx.fillRect(0, 340 + this.selected * 40, this.engine.width, 40);
 
     ctx.fillStyle = "#fff";
 
-    ctx.font = "112px sans-serif";
-    this.engine.centerText("\"Bullet Pull\"", 250);
+    ctx.font = "100px sans-serif";
+    this.engine.centerText("Galactic Backfire", 250);
 
     ctx.font = "20px sans-serif";
-    this.engine.centerText("Backwards through space and time");
+    this.engine.centerText("A space shooter in reverse", 280);
 
     ctx.font = "32px sans-serif";
-    this.engine.centerText("New Game", 350);
-    this.engine.centerText("Controls", 390);
-    this.engine.centerText("About", 430);
+    this.engine.centerText("New Game", 370);
+    this.engine.centerText("Controls", 410);
+    this.engine.centerText("About", 450);
   }
 
 }
