@@ -132,7 +132,9 @@ export default class LevelState extends GameState {
     this.block.setVelocity(0, 0);
     this.block.a = 0;
     this.scratch = new Scratch();
+
     this.foeFactory.hardness = 1;
+    this.foeFactory.wave = 0;
 
     this.nextShieldPowerUp = this.engine.timestamp + POWERUP_SHIELD_DELAY;
     this.nextBulletPowerUp = this.engine.timestamp + POWERUP_BULLET_DELAY;
@@ -312,7 +314,7 @@ export default class LevelState extends GameState {
       }
     }
 
-    if (this.lifePowerUp == null && this.nextLifePowerUp < timestamp) {
+    if (this.lifePowerUp == null && this.nextLifePowerUp < timestamp && this.lives < 5) {
       this.lifePowerUp = {
         x: this.engine.width + 10,
         y: Math.cos(timestamp * 0.0001) * this.engine.height * 0.4 + 0.5 * this.engine.height
@@ -507,7 +509,7 @@ export default class LevelState extends GameState {
       ctx.stroke();
     }
 
-    if (this.foeFactory.hardness / 10 > this.sector) {
+    if (this.foeFactory.wave / this.foeFactory.WAVES_PER_SECTOR > this.sector) {
       this.sector++;
       this.sectorAnnounce = 1;
     }
@@ -666,8 +668,6 @@ export default class LevelState extends GameState {
     let livesText = `${this.lives} lives`;
     ctx.fillText(livesText, this.engine.width - (20 + ctx.measureText(livesText).width), 20);
     ctx.fillText(`Score: ${this.score}`, 20, 20);
-    ctx.fillText(`Sector: ${this.sector}`, 400, 20);
-    ctx.fillText(`Wave: ${this.foeFactory.hardness}`, 600, 20);
 
     ctx.strokeStyle = "#ff0";
     if (gamePad.touchId || true) {

@@ -8,7 +8,8 @@ import AboutState from "./AboutState"
 import Engine from "./Engine"
 
 requestAnimationFrame(function(timestamp) {
-  let engine = new Engine(1000, 600, timestamp);
+  window.scrollTo(0,1);
+  let engine = new Engine(960, 640, timestamp);
 
   let gameStates = {};
   gameStates.titleState = new TitleState(engine);

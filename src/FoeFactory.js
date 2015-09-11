@@ -6,6 +6,7 @@ import CurvyController from "./CurvyController"
 
 const MODE_WAIT = 0;
 const MODE_WAVE = 1;
+const WAVES_PER_SECTOR = 5;
 
 export default class FoeFactory {
 
@@ -15,6 +16,7 @@ export default class FoeFactory {
       this.foeSeq = 0;
       this.foeTime = level.engine.timestamp;
       this.hardness = 1;
+      this.wave = 0;
       this.bezier = new Bezier(this.buildBezierPoints());
       this.curve = this.makeCurve();
       this.sprite = 0;
@@ -62,13 +64,16 @@ export default class FoeFactory {
   }
 
   prepareNextWave() {
-    this.waitUntil = this.spawnUntil + 2000 + 500 * Math.random() * this.hardness * 0.75;
+    this.waitUntil = this.spawnUntil + 2500 + 500 * Math.random();
+
     if (this.hardness % 10 == 9) {
       this.waitUntil += 5000;
     }
-    this.spawnUntil = this.waitUntil + 1000 + 500 * 0.5 * this.hardness + 100 * Math.random();
+
+    this.spawnUntil = this.waitUntil + 1000 + 500 * this.hardness + 100 * Math.random();
     this.spawnRate = 500 + 100 * Math.random();
     this.sprite++;
+
     if (this.sprite >= 50) {
       this.sprite = 1;
     }
@@ -79,7 +84,9 @@ export default class FoeFactory {
     } else if (this.spawnType == 1) {
       this.curve = this.makeCurve();
     }
-    this.hardness += 1;
+
+    this.hardness += 0.2;
+    this.wave++;
   }
 
   makeCurve() {
