@@ -25,7 +25,11 @@ export default class Engine {
     this.canvas = canvas;
     this.ctx = ctx;
     this.updater = this.update.bind(this);
-    this.lastTime = performance.now();
+  }
+
+  init(timestamp) {
+    this.timestamp = timestamp;
+    this.lastTime = timestamp;
   }
 
   update(timestamp) {

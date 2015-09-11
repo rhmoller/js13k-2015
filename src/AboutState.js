@@ -10,7 +10,7 @@ export default class AboutState extends GameState {
   }
 
   init() {
-    this.uiTime = performance.now();
+    this.uiTime = engine.timestamp;
     this.engine.gamepad.fire = false;
   }
 

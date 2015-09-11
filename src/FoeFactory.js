@@ -15,13 +15,13 @@ export default class FoeFactory {
   constructor(level) {
       this.level = level;
       this.foeSeq = 0;
-      this.foeTime = performance.now();
+      this.foeTime = level.engine.timestamp;
       this.hardness = 1;
       this.bezier = new Bezier(this.buildBezierPoints());
       this.curve = this.makeCurve();
       this.sprite = 0;
-      this.spawnUntil = performance.now() + 2500;
-      this.waitUntil = performance.now() + 2000;
+      this.spawnUntil = level.engine.timestamp + 2500;
+      this.waitUntil = level.engine.timestamp + 2000;
       this.spawnType = 0;
       this.prepareNextWave();
   }

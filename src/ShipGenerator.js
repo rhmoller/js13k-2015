@@ -94,9 +94,9 @@ export default class ShipGenerator {
 
     ctx.beginPath();
     ctx.moveTo(0, 0);
-    for (let p of points) {
+    points.forEach(p => {
       ctx.lineTo(-p.x, p.y);
-    }
+    });
     ctx.lineTo(0, 100);
     ctx.fill();
 

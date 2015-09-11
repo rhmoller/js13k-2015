@@ -10,7 +10,7 @@ export default class GameOverState extends GameState {
   }
 
   init() {
-    this.uiTime = performance.now();
+    this.uiTime = this.engine.timestamp;
     this.engine.gamepad.fire = false;
   }
 

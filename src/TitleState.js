@@ -8,7 +8,7 @@ export default class TitleState extends GameState {
   constructor(engine) {
     super(engine);
     this.selected = 0;
-    this.uiTime = performance.now();
+    this.uiTime = this.engine.timestamp;
   }
 
   update(timestamp) {

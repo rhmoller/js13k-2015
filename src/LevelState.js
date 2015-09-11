@@ -132,10 +132,10 @@ export default class LevelState extends GameState {
     this.scratch = new Scratch();
     this.foeFactory.hardness = 1;
 
-    this.nextShieldPowerUp = performance.now() + POWERUP_SHIELD_DELAY;
-    this.nextBulletPowerUp = performance.now() + POWERUP_BULLET_DELAY;
-    this.nextLifePowerUp = performance.now() + POWERUP_LIFE_DELAY;
-    this.firePower = 1;
+    this.nextShieldPowerUp = this.engine.timestamp + POWERUP_SHIELD_DELAY;
+    this.nextBulletPowerUp = this.engine.timestamp + POWERUP_BULLET_DELAY;
+    this.nextLifePowerUp = this.engine.timestamp + POWERUP_LIFE_DELAY;
+    this.firePower = 3;
     this.powerUpShield = true;
     this.flash = 0;
 
@@ -306,7 +306,7 @@ export default class LevelState extends GameState {
 
 
 
-    for (let foe of this.foes) {
+    this.foes.forEach(foe => {
       foe.update(timestamp);
       if (foe.x > 0.01 * WIDTH && Math.random() < 0.005) {
         this.foeBullets.add({ x: 0, y: foe.y, vx: 4, vy: 0, owner: foe});
@@ -327,7 +327,7 @@ export default class LevelState extends GameState {
         this.lives--;
         this.block.shield = 1;
         this.powerUpShield = false;
-        this.firePower = 1;
+        this.firePower = 3;
         this.flash = 1;
 
         this.explode2Idx = (this.explode2Idx + 1) % 10;
@@ -336,9 +336,9 @@ export default class LevelState extends GameState {
         this.explodeIdx = (this.explodeIdx + 1) % 10;
         this.explodePool[this.explodeIdx].play();
       }
-    }
+    });
 
-    for (let bullet of this.bullets) {
+    this.bullets.forEach(bullet => {
       let b2px = block.x - bullet.x;
       let b2py = block.y - bullet.y;
       let d = Math.sqrt(b2px * b2px + b2py * b2py);
@@ -355,9 +355,9 @@ export default class LevelState extends GameState {
       if (bullet.x < block.x - 70 || bullet.x < 0 || bullet.y > HEIGHT + 100 || bullet.y < -100 || d < 20) {
         this.bullets.delete(bullet);
       }
-    }
+    });
 
-    for (let bullet of this.foeBullets) {
+    this.foeBullets.forEach(bullet => {
       let b2px = bullet.owner.x - bullet.x;
       let b2py = bullet.owner.y - bullet.y;
       let d = Math.sqrt(b2px * b2px + b2py * b2py);
@@ -387,18 +387,18 @@ export default class LevelState extends GameState {
         this.block.shield = 1;
         this.lives--;
         this.powerUpShield = false;
-        this.firePower = ;
+        this.firePower = 3;
         this.flash = 1;
 
         this.explode2Idx = (this.explode2Idx + 1) % 10;
         this.explode2Pool[this.explode2Idx].play();
       }
-    }
+    });
 
     this.block.shield -= 0.005;
 
-    for (let bullet of this.bullets) {
-      for (let foe of this.foes) {
+    this.bullets.forEach(bullet => {
+      this.foes.forEach(foe => {
         let b2px = foe.x - bullet.x;
         let b2py = foe.y - bullet.y;
         let d = Math.sqrt(b2px * b2px + b2py * b2py);
@@ -415,15 +415,15 @@ export default class LevelState extends GameState {
           this.explodeIdx = (this.explodeIdx + 1) % 10;
           this.explodePool[this.explodeIdx].play();
         }
-      }
-    }
+      });
+    });
 
-    for (let e of this.explosions) {
+    this.explosions.forEach(e => {
       e.energy -= 0.2;
       if (e.energy < 0 ) {
         this.explosions.delete(e);
       }
-    }
+    });
 
     if (this.lives < 1) {
       this.engine.setState("gameOverState");
@@ -550,18 +550,18 @@ export default class LevelState extends GameState {
     // ctx.stroke();
 
     ctx.fillStyle = "#0ff";
-    for (let bullet of this.bullets) {
+    this.bullets.forEach(bullet => {
       ctx.fillRect(bullet.x - 6, bullet.y - 2, 12, 4);
-    }
+    });
 
     ctx.fillStyle = "#f0f";
-    for (let bullet of this.foeBullets) {
+    this.foeBullets.forEach(bullet => {
       ctx.fillRect(bullet.x - 6, bullet.y - 2, 12, 4);
-    }
+    });
 
     ctx.fillStyle = "#00f";
     ctx.strokeStyle = "#0ff";
-    for (let foe of this.foes) {
+    this.foes.forEach(foe => {
       ctx.save();
       ctx.translate(foe.x, foe.y);
       ctx.rotate(foe.a);
@@ -579,29 +579,11 @@ export default class LevelState extends GameState {
 
       ctx.drawImage(this.foeSprites[foe.sprite], -20, -20);
       ctx.restore();
-/*
-      if (foe.controller.bezier) {
-        ctx.fillStyle = "#ff0";
-        for (let i = 0; i < foe.controller.segments; i += 0.01) {
-          let pt = foe.controller.bezier.getPoint(i);
-          ctx.fillRect(pt.x - 1, pt.y - 1, 3, 3);
-        }
-
-        ctx.beginPath();
-        ctx.strokeStyle = "rgba(255, 0, 0, 0.75)"
-        ctx.moveTo(foe.controller.bezier.controlPoints[0].x, foe.controller.bezier.controlPoints[0].y);
-        for (let pt of foe.controller.bezier.controlPoints) {
-          ctx.lineTo(pt.x, pt.y);
-        }
-        ctx.stroke();
-
-      }
-*/
-    }
+    });
 
     ctx.globalCompositeOperation = "lighter";
     ctx.lineWidth = 1;
-    for (let e of this.explosions) {
+    this.explosions.forEach(e => {
       let sz = 100 - (100 * e.energy * e.energy * 0.01);
       let a = 1 - sz / 100;
       let r = 255;
@@ -620,7 +602,7 @@ export default class LevelState extends GameState {
       ctx.arc(e.x, e.y, 0.5 * sz, 0, 2 * Math.PI, false);
       ctx.fill();
       ctx.stroke();
-    }
+    });
     ctx.globalCompositeOperation = "source-over";
 
     ctx.fillStyle = "#fff";

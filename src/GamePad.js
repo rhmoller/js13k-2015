@@ -8,6 +8,10 @@ export default class GamePad {
     this.fire = false;
     this.esc = false;
 
+    this.touchId = null; // assume single touch
+    this.touchStartX = 0;
+    this.touchStartY = 0;
+
     window.addEventListener("keydown", (e) => {
       let passThrough = false;
       switch (e.keyCode) {
@@ -53,6 +57,51 @@ export default class GamePad {
       }
       e.preventDefault();
     }, false);
+
+    window.addEventListener("touchstart", (e) => {
+      this.fire = true;
+      let touches = e.changedTouches;
+      this.touchId = touches[0].identifier;
+      this.touchStartX = touches[0].pageX;
+      this.touchStartY = touches[0].pageY;
+    }, false);
+
+    window.addEventListener("touchend", (e) => {
+      this.fire = false;
+      this.touchId = null;
+      this.left = false;
+      this.right = false;
+      this.up = false;
+      this.down = false;
+    }, false);
+
+    window.addEventListener("touchmove", (e) => {
+      let touches = e.changedTouches;
+      for (let i = 0; i < touches.length; i++) {
+        if (touches[i].identifier == this.touchId) {
+          let dx = touches[i].pageX - this.touchStartX;
+          let dy = touches[i].pageY - this.touchStartY;
+
+            if (Math.abs(dx) > 2) {
+              this.left = (dx < 0);
+              this.right = (dx > 0);
+            } else {
+              this.left = false;
+              this.right = false;
+            }
+
+            if (Math.abs(dy) > 2) {
+              this.up = (dy < 0);
+              this.down = (dy > 0);
+            } else {
+              this.up = false;
+              this.down = false;
+            }
+        }
+      }
+      e.preventDefault();
+    }, false);
+
   }
 
 }
