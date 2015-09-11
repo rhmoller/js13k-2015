@@ -614,7 +614,6 @@ export default class LevelState extends GameState {
     });
 
     this.smoke.forEach(sm => {
-      console.log(sm.a);
       let c = (sm.a * 100)|0;
       ctx.fillStyle = `rgba(${c},${c},${c},${sm.a})`;
       ctx.beginPath();
