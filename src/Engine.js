@@ -29,8 +29,13 @@ export default class Engine {
       let scaleX = window.innerWidth / width;
       let scaleY = window.innerHeight / height;
       let scale = Math.min(scaleX, scaleY);
-      canvas.style.width = width * scale + "px";
-      canvas.style.height = height * scale + "px";
+      if (scale < 1) {
+        canvas.style.width = width * scale + "px";
+        canvas.style.height = height * scale + "px";
+      } else {
+        canvas.style.width = width + "px";
+        canvas.style.height = height + "px";
+      }
       document.body.scrollLeft = 0;
       document.body.scrollTop = 0;
     }
