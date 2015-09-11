@@ -1,8 +1,5 @@
 import GameState from "./GameState"
 
-const WIDTH = 1000;
-const HEIGHT = 600;
-
 export default class GameOverState extends GameState {
 
   constructor(engine) {
@@ -27,7 +24,7 @@ export default class GameOverState extends GameState {
 
     ctx.strokeStyle = "#512";
     ctx.save();
-    ctx.translate(0.5 * WIDTH - Math.cos(0.0006 * timestamp) * 100, 0.5 * HEIGHT +  - Math.sin(0.001 * timestamp) * 100);
+    ctx.translate(0.5 * this.engine.width - Math.cos(0.0006 * timestamp) * 100, 0.5 * this.engine.height +  - Math.sin(0.001 * timestamp) * 100);
     ctx.rotate(0.0002 * timestamp);
     let levelx = timestamp * 0.2;
     ctx.beginPath();
@@ -44,22 +41,19 @@ export default class GameOverState extends GameState {
     ctx.stroke();
     ctx.restore();
 
-
-
-
     ctx.font = "112px sans-serif";
     ctx.fillStyle = "#fff";
     let textSize = ctx.measureText("Game Over");
-    ctx.fillText("Game Over", 0.5 * (WIDTH - textSize.width), 200);
+    ctx.fillText("Game Over", 0.5 * (this.engine.width - textSize.width), 200);
 
     ctx.font = "32px sans-serif";
     ctx.fillStyle = "#fff";
 
     let scoreText = `Score: ${this.engine.gameStates.levelState.score}`;
-    ctx.fillText(scoreText, 0.5 * (WIDTH - ctx.measureText(scoreText).width), 400);
+    ctx.fillText(scoreText, 0.5 * (this.engine.width - ctx.measureText(scoreText).width), 400);
 
     let sectorText = `Sector: ${this.engine.gameStates.levelState.sector}`;
-    ctx.fillText(sectorText, 0.5 * (WIDTH - ctx.measureText(sectorText).width), 350);
+    ctx.fillText(sectorText, 0.5 * (this.engine.width - ctx.measureText(sectorText).width), 350);
 
   }
 }

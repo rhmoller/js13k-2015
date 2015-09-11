@@ -7,20 +7,17 @@ import ControlsState from "./ControlsState"
 import AboutState from "./AboutState"
 import Engine from "./Engine"
 
-const WIDTH = 1000;
-const HEIGHT = 600;
-
-let engine = new Engine(WIDTH, HEIGHT);
 requestAnimationFrame(function(timestamp) {
-    engine.init(timestamp);
-    let gameStates = {};
-    gameStates.titleState = new TitleState(engine);
-    gameStates.levelState = new LevelState(engine);
-    gameStates.gameOverState = new GameOverState(engine);
-    gameStates.controlsState = new ControlsState(engine);
-    gameStates.aboutState = new AboutState(engine);
-    engine.gameStates = gameStates;
+  let engine = new Engine(1000, 600, timestamp);
 
-    engine.setState("titleState");
-    engine.start();
+  let gameStates = {};
+  gameStates.titleState = new TitleState(engine);
+  gameStates.levelState = new LevelState(engine);
+  gameStates.gameOverState = new GameOverState(engine);
+  gameStates.controlsState = new ControlsState(engine);
+  gameStates.aboutState = new AboutState(engine);
+  engine.gameStates = gameStates;
+
+  engine.setState("titleState");
+  engine.start();
 });

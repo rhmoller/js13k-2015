@@ -4,9 +4,6 @@ import BezierCurveController from "./BezierCurveController"
 import Bezier from "./Bezier"
 import CurvyController from "./CurvyController"
 
-const WIDTH = 1000;
-const HEIGHT = 600;
-
 const MODE_WAIT = 0;
 const MODE_WAVE = 1;
 
@@ -14,6 +11,7 @@ export default class FoeFactory {
 
   constructor(level) {
       this.level = level;
+      this.engine = level.engine;
       this.foeSeq = 0;
       this.foeTime = level.engine.timestamp;
       this.hardness = 1;
@@ -49,7 +47,7 @@ export default class FoeFactory {
           break;
 
         default:
-        controller = new SineWaveController();
+        controller = new SineWaveController(this.engine);
       }
 
       let foe = this.spawn(timestamp, controller, this.sprite);
@@ -87,9 +85,9 @@ export default class FoeFactory {
   makeCurve() {
     let curve = {};
     curve.x1 = -150;
-    curve.x2 = WIDTH + 150;
-    curve.y1 = 100 + (HEIGHT - 200) * Math.random();
-    curve.y2 = 100 + (HEIGHT - 200) * Math.random();
+    curve.x2 = this.engine.width + 150;
+    curve.y1 = 100 + (this.engine.height - 200) * Math.random();
+    curve.y2 = 100 + (this.engine.height - 200) * Math.random();
 
     curve.xm1 = 10 + 50 * Math.min(0.1 * this.hardness, 5) * Math.random();// + 50 * Math.random();
     curve.ym1 = 200 + 100 * Math.min(10, 0.2 * this.hardness) * Math.random();
@@ -111,39 +109,39 @@ export default class FoeFactory {
     let pts = [];
     let top = (Math.random() > 0.5);
 
-    let cursor = { x: Math.random() * WIDTH * 0.5, y : top ? -50 : HEIGHT + 50}
+    let cursor = { x: Math.random() * this.engine.width * 0.5, y : top ? -50 : this.engine.height + 50}
     pts.push({x: cursor.x, y: cursor.y});
 
     let dx = 50;
     for (let i = 0; i < 3; i++) {
 
       cursor.x += dx;
-      cursor.y = (top) ? 0 : HEIGHT;
+      cursor.y = (top) ? 0 : this.engine.height;
       pts.push({x: cursor.x, y: cursor.y});
 
-      let fwd = Math.min(100, Math.max(50, (WIDTH - cursor.x) * Math.random()));
+      let fwd = Math.min(100, Math.max(50, (this.engine.width - cursor.x) * Math.random()));
       let bwd = Math.min(50, Math.max(25, cursor.x * Math.random()));
       dx = (Math.random() > 0.5 && cursor.x > 100) ?  -bwd : fwd;
 
       cursor.x += dx;
-      cursor.y = 0.5 * HEIGHT;
+      cursor.y = 0.5 * this.engine.height;
       pts.push({x: cursor.x, y: cursor.y});
 
       top = !top;
       cursor.x += dx;
-      cursor.y = (top) ? 0 : HEIGHT;
+      cursor.y = (top) ? 0 : this.engine.height;
       pts.push({x: cursor.x, y: cursor.y});
 
       cursor.x += dx;
-      cursor.y = (top) ? 0 : HEIGHT;
+      cursor.y = (top) ? 0 : this.engine.height;
       pts.push({x: cursor.x, y: cursor.y});
     }
 
     cursor.x += dx;
-    cursor.y = (top) ? 0 : HEIGHT;
+    cursor.y = (top) ? 0 : this.engine.height;
     pts.push({x: cursor.x, y: cursor.y});
 
-    pts.push({x: WIDTH + 100, y: Math.random() * HEIGHT});
+    pts.push({x: this.engine.width + 100, y: Math.random() * this.engine.height});
     return pts;
   }
 

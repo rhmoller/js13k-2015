@@ -2,14 +2,16 @@ import GamePad from "./GamePad"
 
 export default class Engine {
 
-  constructor(width, height) {
+  constructor(width, height, timestamp) {
     this.width = width;
     this.height = height;
-    this.gamepad = new GamePad();
+    this.timestamp = timestamp;
+    this.lastTime = timestamp;
 
     let canvas = document.createElement("canvas");
     canvas.width = width;
     canvas.height = height;
+    this.gamepad = new GamePad(canvas);
 
     let ctx = canvas.getContext("2d");
     ctx.fillStyle = "#000";
@@ -25,11 +27,6 @@ export default class Engine {
     this.canvas = canvas;
     this.ctx = ctx;
     this.updater = this.update.bind(this);
-  }
-
-  init(timestamp) {
-    this.timestamp = timestamp;
-    this.lastTime = timestamp;
   }
 
   update(timestamp) {

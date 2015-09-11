@@ -1,6 +1,6 @@
 export default class GamePad {
 
-  constructor() {
+  constructor(canvas) {
     this.left = false;
     this.up = false;
     this.right = false;
@@ -11,6 +11,9 @@ export default class GamePad {
     this.touchId = null; // assume single touch
     this.touchStartX = 0;
     this.touchStartY = 0;
+    this.touchDx = 0;
+    this.touchDy = 0;
+    this.canvas = canvas;
 
     window.addEventListener("keydown", (e) => {
       let passThrough = false;
@@ -58,15 +61,17 @@ export default class GamePad {
       e.preventDefault();
     }, false);
 
-    window.addEventListener("touchstart", (e) => {
+    canvas.addEventListener("touchstart", (e) => {
       this.fire = true;
-      let touches = e.changedTouches;
-      this.touchId = touches[0].identifier;
-      this.touchStartX = touches[0].pageX;
-      this.touchStartY = touches[0].pageY;
+      if (!this.touchId) {
+        let touches = e.changedTouches;
+        this.touchId = touches[0].identifier;
+        this.touchStartX = touches[0].pageX - this.canvas.offsetLeft;
+        this.touchStartY = touches[0].pageY - this.canvas.offsetTop;
+      }
     }, false);
 
-    window.addEventListener("touchend", (e) => {
+    canvas.addEventListener("touchend", (e) => {
       this.fire = false;
       this.touchId = null;
       this.left = false;
@@ -75,14 +80,25 @@ export default class GamePad {
       this.down = false;
     }, false);
 
-    window.addEventListener("touchmove", (e) => {
+    canvas.addEventListener("touchcancel", (e) => {
+      this.fire = false;
+      this.touchId = null;
+      this.left = false;
+      this.right = false;
+      this.up = false;
+      this.down = false;
+    }, false);
+
+    canvas.addEventListener("touchmove", (e) => {
       let touches = e.changedTouches;
       for (let i = 0; i < touches.length; i++) {
         if (touches[i].identifier == this.touchId) {
-          let dx = touches[i].pageX - this.touchStartX;
-          let dy = touches[i].pageY - this.touchStartY;
+          let dx = touches[i].pageX - this.touchStartX - this.canvas.offsetLeft;
+          let dy = touches[i].pageY - this.touchStartY - this.canvas.offsetTop;
+          this.touchDx = dx;
+          this.touchDy = dy;
 
-            if (Math.abs(dx) > 2) {
+            if (Math.abs(dx) > 20) {
               this.left = (dx < 0);
               this.right = (dx > 0);
             } else {
@@ -90,7 +106,7 @@ export default class GamePad {
               this.right = false;
             }
 
-            if (Math.abs(dy) > 2) {
+            if (Math.abs(dy) > 20) {
               this.up = (dy < 0);
               this.down = (dy > 0);
             } else {

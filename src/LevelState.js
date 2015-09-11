@@ -5,8 +5,6 @@ import FoeFactory from "./FoeFactory"
 import Scratch from "./Scratch"
 
 const MAXV = 10;
-const WIDTH = 1000;
-const HEIGHT = 600;
 
 const POWERUP_BULLET_DELAY = 10000;
 const POWERUP_SHIELD_DELAY = 15000;
@@ -18,8 +16,8 @@ export default class LevelState extends GameState {
     super(engine);
 
     let block = new Body(16, 16);
-    block.x = 0.5 * WIDTH;
-    block.y = 0.5 * HEIGHT;
+    block.x = 0.5 * this.engine.width;
+    block.y = 0.5 * this.engine.height;
     block.setVelocity(0, 0);
     block.a = 0;
     this.block = block;
@@ -58,7 +56,6 @@ export default class LevelState extends GameState {
     this.nextBulletPowerUp = 0;
     this.nextLifePowerUp = 0;
     this.firePower = 1;
-    this.powerUpShield = false;
     this.flash = 0;
 
     this.sector = 1;
@@ -127,8 +124,8 @@ export default class LevelState extends GameState {
     this.bullets.clear();
     this.explosions.clear();
     this.block.shield = 1;
-    this.block.x = 0.5 * WIDTH;
-    this.block.y = 0.5 * HEIGHT;
+    this.block.x = 0.5 * this.engine.width;
+    this.block.y = 0.5 * this.engine.height;
     this.scratch = new Scratch();
     this.foeFactory.hardness = 1;
 
@@ -136,7 +133,6 @@ export default class LevelState extends GameState {
     this.nextBulletPowerUp = this.engine.timestamp + POWERUP_BULLET_DELAY;
     this.nextLifePowerUp = this.engine.timestamp + POWERUP_LIFE_DELAY;
     this.firePower = 3;
-    this.powerUpShield = true;
     this.flash = 0;
 
     this.sector = 1;
@@ -173,44 +169,44 @@ export default class LevelState extends GameState {
 
     if (block.y < 20) {
       block.y = 20;
-    } else if (block.y > HEIGHT - 20) {
-      block.y = HEIGHT - 20;
+    } else if (block.y > this.engine.height - 20) {
+      block.y = this.engine.height - 20;
     }
 
     if (block.x < 20) {
       block.x = 20;
-    } else if (block.x > WIDTH - 20) {
-      block.x = WIDTH - 20;
+    } else if (block.x > this.engine.width - 20) {
+      block.x = this.engine.width - 20;
     }
 
     this.foeFactory.spawnTo(this.foes, timestamp);
 
-    if (gamePad.fire && (this.powerUpShield || this.block.shield <= 0.5) && (timestamp - this.bulletTime) > 150) {
+    if (gamePad.fire && (timestamp - this.bulletTime) > 150) {
       switch (this.firePower) {
         case 1:
-          this.bullets.add({ x : WIDTH, y : block.y, vx: -6, vy: 0 });
+          this.bullets.add({ x : this.engine.width, y : block.y, vx: -6, vy: 0 });
         break;
         case 2:
-          this.bullets.add({ x : WIDTH, y : block.y - 10, vx: -6, vy: 0 });
-          this.bullets.add({ x : WIDTH, y : block.y + 10, vx: -6, vy: 0 });
+          this.bullets.add({ x : this.engine.width, y : block.y - 10, vx: -6, vy: 0 });
+          this.bullets.add({ x : this.engine.width, y : block.y + 10, vx: -6, vy: 0 });
         break;
         case 3:
-          this.bullets.add({ x : WIDTH, y : block.y + 20, vx: -6, vy: 0 });
-          this.bullets.add({ x : WIDTH + 5, y : block.y, vx: -6, vy: 0 });
-          this.bullets.add({ x : WIDTH, y : block.y - 20, vx: -6, vy: 0 });
+          this.bullets.add({ x : this.engine.width, y : block.y + 20, vx: -6, vy: 0 });
+          this.bullets.add({ x : this.engine.width + 5, y : block.y, vx: -6, vy: 0 });
+          this.bullets.add({ x : this.engine.width, y : block.y - 20, vx: -6, vy: 0 });
         break;
         case 4:
-          this.bullets.add({ x : WIDTH, y : block.y - 10, vx: -6, vy: 0 });
-          this.bullets.add({ x : WIDTH + 5, y : block.y + 10, vx: -6, vy: 0 });
-          this.bullets.add({ x : WIDTH + 5, y : block.y - 30, vx: -6, vy: 0 });
-          this.bullets.add({ x : WIDTH, y : block.y + 30, vx: -6, vy: 0 });
+          this.bullets.add({ x : this.engine.width, y : block.y - 10, vx: -6, vy: 0 });
+          this.bullets.add({ x : this.engine.width + 5, y : block.y + 10, vx: -6, vy: 0 });
+          this.bullets.add({ x : this.engine.width + 5, y : block.y - 30, vx: -6, vy: 0 });
+          this.bullets.add({ x : this.engine.width, y : block.y + 30, vx: -6, vy: 0 });
         break;
         case 5:
-        this.bullets.add({ x : WIDTH, y : block.y + 40, vx: -6, vy: 0 });
-          this.bullets.add({ x : WIDTH + 5, y : block.y + 20, vx: -6, vy: 0 });
-          this.bullets.add({ x : WIDTH + 10, y : block.y, vx: -6, vy: 0 });
-          this.bullets.add({ x : WIDTH + 5, y : block.y - 20, vx: -6, vy: 0 });
-          this.bullets.add({ x : WIDTH, y : block.y - 40, vx: -6, vy: 0 });
+        this.bullets.add({ x : this.engine.width, y : block.y + 40, vx: -6, vy: 0 });
+          this.bullets.add({ x : this.engine.width + 5, y : block.y + 20, vx: -6, vy: 0 });
+          this.bullets.add({ x : this.engine.width + 10, y : block.y, vx: -6, vy: 0 });
+          this.bullets.add({ x : this.engine.width + 5, y : block.y - 20, vx: -6, vy: 0 });
+          this.bullets.add({ x : this.engine.width, y : block.y - 40, vx: -6, vy: 0 });
         break;
       }
       this.bulletTime = timestamp;
@@ -221,14 +217,14 @@ export default class LevelState extends GameState {
 
     if (this.shieldPowerUp == null && this.nextShieldPowerUp < timestamp) {
       this.shieldPowerUp = {
-        x: WIDTH + 10,
-        y: Math.cos(timestamp * 0.0001) * HEIGHT * 0.4 + 0.5 * HEIGHT
+        x: this.engine.width + 10,
+        y: Math.cos(timestamp * 0.0001) * this.engine.height * 0.4 + 0.5 * this.engine.height
       };
     }
 
     if (this.shieldPowerUp) {
       this.shieldPowerUp.x -= 1;
-      this.shieldPowerUp.y = Math.cos(timestamp * 0.0001) * HEIGHT * 0.4 + 0.5 * HEIGHT
+      this.shieldPowerUp.y = Math.cos(timestamp * 0.0001) * this.engine.height * 0.4 + 0.5 * this.engine.height
 
       let dx = this.shieldPowerUp.x - block.x;
       let dy = this.shieldPowerUp.y - block.y;
@@ -237,7 +233,6 @@ export default class LevelState extends GameState {
         this.shieldPowerUp = null;
         this.nextShieldPowerUp = timestamp + POWERUP_SHIELD_DELAY;
         this.block.shield = 1;
-        this.powerUpShield = true;
         this.powerUpSndIdx = (this.powerUpSndIdx + 1) % 10;
         let sound = this.powerUpSndPool[this.powerUpSndIdx];
         sound.play();
@@ -250,14 +245,14 @@ export default class LevelState extends GameState {
 
     if (this.bulletPowerUp == null && this.nextBulletPowerUp < timestamp && this.firePower < 5) {
       this.bulletPowerUp = {
-        x: WIDTH + 10,
-        y: Math.cos(timestamp * 0.0001) * HEIGHT * 0.4 + 0.5 * HEIGHT
+        x: this.engine.width + 10,
+        y: Math.cos(timestamp * 0.0001) * this.engine.height * 0.4 + 0.5 * this.engine.height
       };
     }
 
     if (this.bulletPowerUp) {
       this.bulletPowerUp.x -= 1;
-      this.bulletPowerUp.y = Math.cos(timestamp * 0.0002) * HEIGHT * 0.4 + 0.5 * HEIGHT
+      this.bulletPowerUp.y = Math.cos(timestamp * 0.0002) * this.engine.height * 0.4 + 0.5 * this.engine.height
 
       let dx = this.bulletPowerUp.x - block.x;
       let dy = this.bulletPowerUp.y - block.y;
@@ -278,14 +273,14 @@ export default class LevelState extends GameState {
 
     if (this.lifePowerUp == null && this.nextLifePowerUp < timestamp) {
       this.lifePowerUp = {
-        x: WIDTH + 10,
-        y: Math.cos(timestamp * 0.0001) * HEIGHT * 0.4 + 0.5 * HEIGHT
+        x: this.engine.width + 10,
+        y: Math.cos(timestamp * 0.0001) * this.engine.height * 0.4 + 0.5 * this.engine.height
       };
     }
 
     if (this.lifePowerUp) {
       this.lifePowerUp.x -= 1;
-      this.lifePowerUp.y = Math.cos(timestamp * 0.0003) * HEIGHT * 0.4 + 0.5 * HEIGHT
+      this.lifePowerUp.y = Math.cos(timestamp * 0.0003) * this.engine.height * 0.4 + 0.5 * this.engine.height
 
       let dx = this.lifePowerUp.x - block.x;
       let dy = this.lifePowerUp.y - block.y;
@@ -308,7 +303,7 @@ export default class LevelState extends GameState {
 
     this.foes.forEach(foe => {
       foe.update(timestamp);
-      if (foe.x > 0.01 * WIDTH && Math.random() < 0.005) {
+      if (foe.x > 0.01 * this.engine.width && Math.random() < 0.005) {
         this.foeBullets.add({ x: 0, y: foe.y, vx: 4, vy: 0, owner: foe});
       }
 
@@ -316,7 +311,7 @@ export default class LevelState extends GameState {
       let b2py = block.y - foe.y;
       let d = Math.sqrt(b2px * b2px + b2py * b2py);
 
-      if (foe.x > WIDTH + 32) {
+      if (foe.x > this.engine.width + 32) {
         this.foes.delete(foe);
       } else if (d < 32 && block.shield <= 0) {
         this.foes.delete(foe);
@@ -326,7 +321,6 @@ export default class LevelState extends GameState {
 
         this.lives--;
         this.block.shield = 1;
-        this.powerUpShield = false;
         this.firePower = 3;
         this.flash = 1;
 
@@ -352,7 +346,7 @@ export default class LevelState extends GameState {
       bullet.x += bullet.vx;
       bullet.y += bullet.vy;
 
-      if (bullet.x < block.x - 70 || bullet.x < 0 || bullet.y > HEIGHT + 100 || bullet.y < -100 || d < 20) {
+      if (bullet.x < block.x - 70 || bullet.x < 0 || bullet.y > this.engine.height + 100 || bullet.y < -100 || d < 20) {
         this.bullets.delete(bullet);
       }
     });
@@ -371,7 +365,7 @@ export default class LevelState extends GameState {
       bullet.x += bullet.vx;
       bullet.y += bullet.vy;
 
-      if (d < 20 || bullet.x > WIDTH) {
+      if (d < 20 || bullet.x > this.engine.width) {
         this.foeBullets.delete(bullet);
       }
 
@@ -386,7 +380,6 @@ export default class LevelState extends GameState {
 
         this.block.shield = 1;
         this.lives--;
-        this.powerUpShield = false;
         this.firePower = 3;
         this.flash = 1;
 
@@ -444,18 +437,18 @@ export default class LevelState extends GameState {
       ctx.strokeStyle = "#012";
     }
 
-    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    ctx.fillRect(0, 0, this.engine.width, this.engine.height);
     let levelx = (timestamp * 0.2) % 50;
-    for (let x = 0; x < WIDTH; x+= 50) {
+    for (let x = 0; x < this.engine.width; x+= 50) {
       ctx.beginPath();
-      ctx.moveTo(WIDTH - (x + 50 - levelx) % WIDTH, 0);
-      ctx.lineTo(WIDTH - (x + 50 - levelx) % WIDTH, HEIGHT);
+      ctx.moveTo(this.engine.width - (x + 50 - levelx) % this.engine.width, 0);
+      ctx.lineTo(this.engine.width - (x + 50 - levelx) % this.engine.width, this.engine.height);
       ctx.stroke();
     }
-    for (let y = 0; y < HEIGHT; y+= 50) {
+    for (let y = 0; y < this.engine.height; y+= 50) {
       ctx.beginPath();
       ctx.moveTo(0, y);
-      ctx.lineTo(WIDTH, y);
+      ctx.lineTo(this.engine.width, y);
       ctx.stroke();
     }
 
@@ -471,7 +464,7 @@ export default class LevelState extends GameState {
 
       let text = `Approaching sector ${this.sector}`;
       let textSize = ctx.measureText(text);
-      ctx.fillText(text, 0.5 * (WIDTH - textSize.width), HEIGHT - 50);
+      ctx.fillText(text, 0.5 * (this.engine.width - textSize.width), this.engine.height - 50);
     }
 
     ctx.save();
@@ -608,10 +601,18 @@ export default class LevelState extends GameState {
     ctx.fillStyle = "#fff";
     ctx.font = "20px sans-serif";
     let livesText = `${this.lives} lives`;
-    ctx.fillText(livesText, WIDTH - (20 + ctx.measureText(livesText).width), 20);
+    ctx.fillText(livesText, this.engine.width - (20 + ctx.measureText(livesText).width), 20);
     ctx.fillText(`Score: ${this.score}`, 20, 20);
     ctx.fillText(`Sector: ${this.sector}`, 400, 20);
     ctx.fillText(`Wave: ${this.foeFactory.hardness%10}`, 600, 20);
+
+    ctx.strokeStyle = "#ff0";
+    if (gamePad.touchId || true) {
+      ctx.beginPath();
+      ctx.moveTo(gamePad.touchStartX, gamePad.touchStartY);
+      ctx.lineTo(gamePad.touchStartX + gamePad.touchDx, gamePad.touchStartY + gamePad.touchDy);
+      ctx.stroke();
+    }
 
     this.scratch.update(ctx, timestamp);
     this.lastTime = timestamp;

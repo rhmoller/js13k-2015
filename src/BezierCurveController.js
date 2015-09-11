@@ -1,8 +1,5 @@
 import Bezier from "./Bezier"
 
-const WIDTH = 1000;
-const HEIGHT = 600;
-
 export default class BezierCurveController {
 
   constructor(bezier) {

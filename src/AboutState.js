@@ -1,8 +1,5 @@
 import GameState from "./GameState"
 
-const WIDTH = 1000;
-const HEIGHT = 600;
-
 export default class AboutState extends GameState {
 
   constructor(engine) {
@@ -27,7 +24,7 @@ export default class AboutState extends GameState {
 
     ctx.strokeStyle = "#140";
     ctx.save();
-    ctx.translate(0.5 * WIDTH - Math.cos(0.0006 * timestamp) * 100, 0.5 * HEIGHT +  - Math.sin(0.001 * timestamp) * 100);
+    ctx.translate(0.5 * this.engine.width - Math.cos(0.0006 * timestamp) * 100, 0.5 * this.engine.height +  - Math.sin(0.001 * timestamp) * 100);
     ctx.rotate(2 * Math.cos(0.0001 * timestamp));
     let levelx = timestamp * 0.2;
     ctx.beginPath();
@@ -48,6 +45,6 @@ export default class AboutState extends GameState {
     ctx.font = "112px sans-serif";
     ctx.fillStyle = "#fff";
     let textSize = ctx.measureText("About");
-    ctx.fillText("About", 0.5 * (WIDTH - textSize.width), 200);
+    ctx.fillText("About", 0.5 * (this.engine.width - textSize.width), 200);
   }
 }

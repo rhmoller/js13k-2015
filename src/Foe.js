@@ -1,5 +1,3 @@
-const HEIGHT = 600;
-
 export default class Foe {
 
   constructor(seq, controller, sprite) {
@@ -26,7 +24,7 @@ export default class Foe {
 
   update(timestamp) {
     this.controller.update(this, timestamp);
-    this.a = Math.PI + Math.atan2(this.y - this.lastY, this.x - this.lastX);    
+    this.a = Math.PI + Math.atan2(this.y - this.lastY, this.x - this.lastX);
     this.lastX = this.x;
     this.lastY = this.y;
   }
