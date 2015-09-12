@@ -6,7 +6,6 @@ import CurvyController from "./CurvyController"
 
 const MODE_WAIT = 0;
 const MODE_WAVE = 1;
-const WAVES_PER_SECTOR = 5;
 
 export default class FoeFactory {
 
@@ -66,7 +65,7 @@ export default class FoeFactory {
   prepareNextWave() {
     this.waitUntil = this.spawnUntil + 2500 + 500 * Math.random();
 
-    if (this.hardness % 10 == 9) {
+    if (this.hardness % 10 == 0) {
       this.waitUntil += 5000;
     }
 

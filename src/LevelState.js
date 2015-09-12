@@ -9,6 +9,7 @@ const MAXV = 10;
 const POWERUP_BULLET_DELAY = 10000;
 const POWERUP_SHIELD_DELAY = 15000;
 const POWERUP_LIFE_DELAY = 20000;
+const WAVES_PER_SECTOR = 10;
 
 export default class LevelState extends GameState {
 
@@ -285,8 +286,7 @@ export default class LevelState extends GameState {
         this.powerUpSndIdx = (this.powerUpSndIdx + 1) % 10;
         let sound = this.powerUpSndPool[this.powerUpSndIdx];
         sound.play();
-      }
-      if (this.shieldPowerUp.x < 0) {
+      } else if (this.shieldPowerUp.x < 0) {
         this.shieldPowerUp = null;
         this.nextShieldPowerUp = timestamp + POWERUP_SHIELD_DELAY;
       }
@@ -340,8 +340,7 @@ export default class LevelState extends GameState {
         this.powerUpSndIdx = (this.powerUpSndIdx + 1) % 10;
         let sound = this.powerUpSndPool[this.powerUpSndIdx];
         sound.play();
-      }
-      if (this.lifePowerUp.x < 0) {
+      } else if (this.lifePowerUp.x < 0) {
         this.lifePowerUp = null;
         this.nextLifePowerUp = timestamp + POWERUP_LIFE_DELAY;
       }
@@ -514,7 +513,7 @@ export default class LevelState extends GameState {
       ctx.stroke();
     }
 
-    if (this.foeFactory.wave / this.foeFactory.WAVES_PER_SECTOR > this.sector) {
+    if (this.foeFactory.wave / WAVES_PER_SECTOR > this.sector) {
       this.sector++;
       this.sectorAnnounce = 1;
     }
